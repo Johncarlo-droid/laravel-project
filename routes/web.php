@@ -103,13 +103,3 @@ Route::middleware('auth')->group(function () {
         Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
     });
 });
-
-// TEMPORARY — for one-time DB import to Railway volume. Remove after use.
-Route::post('/emergency-db-import', function (\Illuminate\Http\Request $request) {
-    if ($request->header('X-Import-Secret') !== env('DB_IMPORT_SECRET')) {
-        abort(403, 'Not allowed');
-    }
-    $request->validate(['file' => 'required|file']);
-    $request->file('file')->move(dirname(env('DB_DATABASE')), basename(env('DB_DATABASE')));
-    return 'Uploaded to ' . env('DB_DATABASE');
-});

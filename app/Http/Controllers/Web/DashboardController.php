@@ -35,10 +35,10 @@ class DashboardController extends Controller
             ->orderBy('departments.name')
             ->get();
 
-        $requisitionTrend = Requisition::selectRaw("strftime('%m', requested_at) as month_num")
+        $requisitionTrend = Requisition::selectRaw("EXTRACT(MONTH FROM requested_at) as month_num")
             ->selectRaw('COUNT(*) as total')
             ->whereNotNull('requested_at')
-            ->groupBy('month_num')
+            ->groupByRaw("EXTRACT(MONTH FROM requested_at)")
             ->orderBy('month_num')
             ->get();
 

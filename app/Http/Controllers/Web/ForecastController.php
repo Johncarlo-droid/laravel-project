@@ -19,8 +19,8 @@ class ForecastController extends Controller
 
         if ($selectedItem) {
             $rows = InventoryUsageLog::where('item_id', $selectedItem->id)
-                ->selectRaw("strftime('%Y-%m', usage_date) as period, SUM(quantity_used) as usage_qty")
-                ->groupBy('period')
+                ->selectRaw("TO_CHAR(usage_date, 'YYYY-MM') as period, SUM(quantity_used) as usage_qty")
+                ->groupByRaw("TO_CHAR(usage_date, 'YYYY-MM')")
                 ->orderBy('period')
                 ->get();
 

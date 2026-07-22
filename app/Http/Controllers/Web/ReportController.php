@@ -37,9 +37,9 @@ class ReportController extends Controller
             ->groupBy('status')
             ->get();
 
-        $monthlyAcquisitions = Acquisition::selectRaw("strftime('%m', acquisition_date) as month_num")
+        $monthlyAcquisitions = Acquisition::selectRaw("EXTRACT(MONTH FROM acquisition_date) as month_num")
             ->selectRaw('SUM(quantity * unit_cost) as total_amount')
-            ->groupBy('month_num')
+            ->groupByRaw("EXTRACT(MONTH FROM acquisition_date)")
             ->orderBy('month_num')
             ->get();
 

@@ -13,8 +13,6 @@ WORKDIR /app
 COPY . .
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction \
-    && php artisan config:clear \
-    && php artisan cache:clear \
     && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views \
     && mkdir -p storage/logs bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
@@ -24,5 +22,4 @@ EXPOSE 8080
 CMD sh -c "mkdir -p /data && \
 touch /data/database.sqlite && \
 php artisan migrate --force && \
-php artisan config:clear && \
 php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"

@@ -6,8 +6,6 @@ if [ ! -f .env ]; then
     cp .env.example .env
 fi
 
-# Generate APP_KEY kung wala pa
-php artisan key:generate --force
 
 # Clear caches
 php artisan config:clear

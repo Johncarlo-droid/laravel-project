@@ -1,11 +1,6 @@
 #!/bin/sh
 set -e
 
-# Gumawa ng .env kung wala pa
-if [ ! -f .env ]; then
-    cp .env.example .env
-fi
-
 
 # Clear caches
 php artisan config:clear

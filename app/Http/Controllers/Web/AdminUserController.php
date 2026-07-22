@@ -26,7 +26,7 @@ class AdminUserController extends Controller
                         ->orWhere('approver_type', 'like', "%{$search}%");
                 });
             })
-            ->orderByRaw("CASE WHEN is_approved = 0 THEN 0 ELSE 1 END")
+            ->orderByRaw("CASE WHEN NOT is_approved THEN 0 ELSE 1 END")
             ->orderByRaw("CASE WHEN role = 'admin' THEN 0 WHEN role = 'approver' THEN 1 ELSE 2 END")
             ->orderBy('name')
             ->paginate(12)

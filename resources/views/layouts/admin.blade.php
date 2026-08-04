@@ -107,7 +107,13 @@
         .btn-reject{background:linear-gradient(155deg,#DE4A57,var(--danger-ink));box-shadow:0 4px 12px -3px rgba(196,42,59,.4)}
         .btn-soft{background:var(--navy-800);box-shadow:var(--shadow-sm)}
         .btn-approve:hover,.btn-reject:hover,.btn-soft:hover{transform:translateY(-1px)}
-        .small-btn{padding:7px 13px;border-radius:9px;font-size:11.5px;font-weight:700}
+        .small-btn{padding:7px 13px;border-radius:9px;font-size:11.5px;font-weight:700;line-height:1;overflow:hidden}
+        /* Hard cap on icon glyph size — clips any icon that tries to render
+           larger than its button (font-loading races, browser extensions,
+           zoom/translate tools can otherwise blow an icon up to huge size). */
+        .btn-primaryx,.btn-approve,.btn-reject,.btn-soft,.small-btn,.notif-link,.theme-toggle,.mobile-menu,.top-icon{line-height:1}
+        .btn-primaryx i,.btn-approve i,.btn-reject i,.btn-soft i,.small-btn i,.notif-link i,.theme-toggle i,.mobile-menu i,
+        i[class^="bi-"],i[class*=" bi-"]{font-size:1em!important;line-height:1!important;display:inline-block;vertical-align:-.125em;max-width:1.4em;max-height:1.4em;overflow:hidden}
 
         /* ---------- Search / filter ---------- */
         .search-strip{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid var(--line);background:var(--surface);border-radius:var(--r-sm);box-shadow:var(--shadow-sm);margin-bottom:16px}

@@ -33,6 +33,7 @@
             --shadow-md:0 8px 24px -8px rgba(18,22,43,.14), 0 2px 8px -2px rgba(18,22,43,.06);
             --shadow-lg:0 24px 48px -16px rgba(12,19,48,.28), 0 4px 16px -4px rgba(12,19,48,.10);
             --font-display:'Lexend',Inter,Segoe UI,Arial,sans-serif;
+            --topbar-bg:rgba(255,255,255,.85);
         }
         html[data-theme="dark"]{
             --canvas:#0B0E1A; --surface:#131729; --surface-2:#181D34;
@@ -45,6 +46,7 @@
             --shadow-sm:0 1px 2px rgba(0,0,0,.3), 0 1px 1px rgba(0,0,0,.24);
             --shadow-md:0 8px 24px -8px rgba(0,0,0,.5), 0 2px 8px -2px rgba(0,0,0,.3);
             --shadow-lg:0 24px 48px -16px rgba(0,0,0,.6), 0 4px 16px -4px rgba(0,0,0,.35);
+            --topbar-bg:rgba(19,23,41,.85);
         }
         *{box-sizing:border-box}
         html{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
@@ -79,7 +81,7 @@
 
         /* ---------- Topbar ---------- */
         .main{flex:1;min-width:0}
-        .topbar{height:72px;background:rgba(255,255,255,.85);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:10;backdrop-filter:blur(10px) saturate(1.4)}
+        .topbar{height:72px;background:var(--topbar-bg);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:10;backdrop-filter:blur(10px) saturate(1.4)}
         .page-title{font-size:15px;font-weight:700;margin:0;color:var(--ink-900);letter-spacing:-.01em}
         .page-subtitle{font-size:11.5px;color:var(--ink-500);margin-top:1px}
         .top-actions{display:flex;align-items:center;gap:18px}
@@ -260,6 +262,17 @@
         .app-page-item.disabled .app-page-link:hover{background:var(--surface-2);color:var(--ink-400)}
         .app-page-dots{border-color:transparent;background:transparent}
         .app-page-link i{font-size:12px!important}
+
+        /* ---------- Bootstrap color overrides (so its hardcoded grays/lights follow our theme, incl. dark mode) ---------- */
+        .text-muted{color:var(--ink-500)!important}
+        .text-danger{color:var(--danger-ink)!important}
+        .border{border-color:var(--line)!important}
+        .alert{border-radius:var(--r-md);font-size:12.5px}
+        .alert-success{background:var(--success-bg);color:var(--success-ink);border-color:var(--success-line)}
+        .alert-danger{background:var(--danger-bg);color:var(--danger-ink);border-color:var(--danger-line)}
+        .form-control,.form-select{background:var(--surface);color:var(--ink-900);border-color:var(--line)}
+        .form-control::placeholder{color:var(--ink-400)}
+        .form-control:disabled,.form-select:disabled{background:var(--surface-2)}
 
         .mobile-menu{display:none}
         @media (max-width: 991px){

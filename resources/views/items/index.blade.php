@@ -104,6 +104,6 @@
             </tbody>
         </table>
     </div>
-    {{ $items->links() }}
+    {{ $items->links('vendor.pagination.custom') }}
 </div>
 @endsection

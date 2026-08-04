@@ -248,6 +248,19 @@
         .note-callout{display:flex;gap:10px;align-items:flex-start;background:var(--info-bg);border:1px solid var(--info-line);color:var(--info-ink);border-radius:var(--r-md);padding:11px 14px;font-size:11.5px;line-height:1.5;margin-top:4px}
         .note-callout i{font-size:15px;margin-top:1px}
 
+        /* ---------- Pagination ---------- */
+        .app-pagination{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+        .app-pagination-info{font-size:11.5px;color:var(--ink-500)}
+        .app-pagination-list{list-style:none;display:flex;align-items:center;gap:4px;margin:0;padding:0;flex-wrap:wrap}
+        .app-page-item{display:inline-flex}
+        .app-page-link{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;padding:0 8px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink-700);font-size:11.5px;font-weight:600;text-decoration:none;transition:background .15s ease,color .15s ease,border-color .15s ease}
+        .app-page-link:hover{background:var(--canvas);color:var(--ink-900)}
+        .app-page-item.active .app-page-link{background:linear-gradient(155deg,var(--navy-700),var(--navy-900));border-color:var(--navy-900);color:#fff}
+        .app-page-item.disabled .app-page-link{color:var(--ink-400);cursor:default;background:var(--surface-2)}
+        .app-page-item.disabled .app-page-link:hover{background:var(--surface-2);color:var(--ink-400)}
+        .app-page-dots{border-color:transparent;background:transparent}
+        .app-page-link i{font-size:12px!important}
+
         .mobile-menu{display:none}
         @media (max-width: 991px){
             .sidebar{position:fixed;left:-120px;transition:.25s ease;box-shadow:var(--shadow-lg)}

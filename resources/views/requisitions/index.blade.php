@@ -37,6 +37,6 @@
     @empty
     <div class="empty-state">No requisitions found.</div>
     @endforelse
-    {{ $requisitions->links() }}
+    {{ $requisitions->links('vendor.pagination.custom') }}
 </div>
 @endsection

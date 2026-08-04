@@ -42,6 +42,6 @@
     @empty
     <div class="empty-state">No activity proposals found.</div>
     @endforelse
-    {{ $proposals->links() }}
+    {{ $proposals->links('vendor.pagination.custom') }}
 </div>
 @endsection

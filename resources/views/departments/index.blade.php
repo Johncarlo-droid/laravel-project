@@ -22,6 +22,6 @@
         </tbody>
     </table>
     </div>
-    {{ $departments->links() }}
+    {{ $departments->links('vendor.pagination.custom') }}
 </div>
 @endsection

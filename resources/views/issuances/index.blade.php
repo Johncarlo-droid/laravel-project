@@ -32,6 +32,6 @@
     @empty
     <div class="empty-state">No issuance records found.</div>
     @endforelse
-    {{ $issuances->links() }}
+    {{ $issuances->links('vendor.pagination.custom') }}
 </div>
 @endsection

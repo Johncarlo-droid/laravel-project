@@ -28,7 +28,7 @@
       </tbody>
     </table>
   </div>
-  <div class="mt-3">{{ $facilities->links() }}</div>
+  <div class="mt-3">{{ $facilities->links('vendor.pagination.custom') }}</div>
 </div>
 
 <div class="surface p-3">
@@ -58,6 +58,6 @@
       </tbody>
     </table>
   </div>
-  <div class="mt-3">{{ $reservations->links() }}</div>
+  <div class="mt-3">{{ $reservations->links('vendor.pagination.custom') }}</div>
 </div>
 @endsection

@@ -37,6 +37,6 @@
     <div class="empty-state">No notifications yet.</div>
     @endforelse
 
-    {{ $notifications->links() }}
+    {{ $notifications->links('vendor.pagination.custom') }}
 </div>
 @endsection

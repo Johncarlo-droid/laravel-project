@@ -69,6 +69,6 @@
     </tr>
   @empty<tr><td colspan="8" class="empty-state">No scan logs yet. Scans will appear here once housekeeping starts scanning assets on mobile.</td></tr>@endforelse
   </tbody></table></div>
-  <div class="mt-3">{{ $logs->links() }}</div>
+  <div class="mt-3">{{ $logs->links('vendor.pagination.custom') }}</div>
 </div>
 @endsection

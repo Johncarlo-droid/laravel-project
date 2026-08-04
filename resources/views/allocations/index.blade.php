@@ -21,6 +21,6 @@
         </tbody>
     </table>
     </div>
-    {{ $allocations->links() }}
+    {{ $allocations->links('vendor.pagination.custom') }}
 </div>
 @endsection

@@ -1,0 +1,5 @@
+<?php $__env->startSection('content'); ?>
+<div class="module-head"><div><h2 class="module-title"><?php echo e($item->item_type === 'OPEX' ? 'Edit OPEX Item' : 'Edit CAPEX Item'); ?></h2><div class="module-note">Update item details, stock, and classification</div></div></div>
+<div class="form-shell"><form method="POST" action="<?php echo e(route('items.update',$item)); ?>" enctype="multipart/form-data"><?php echo csrf_field(); ?> <?php echo method_field('PUT'); ?> <?php echo $__env->make('items.form', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><div class="mt-4 d-flex gap-2"><button class="btn-primaryx">Update Item</button><a href="<?php echo e(route('items.index', ['type' => $item->item_type])); ?>" class="btn btn-light small-btn" style="border:1px solid #c7cbd4">Back</a></div></form></div>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.admin', ['title' => $item->item_type === 'OPEX' ? 'Edit OPEX Item' : 'Edit CAPEX Item'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /home/claude/work2/capex-opex/resources/views/items/edit.blade.php ENDPATH**/ ?>

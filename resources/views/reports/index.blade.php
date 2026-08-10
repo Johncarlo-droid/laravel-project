@@ -75,14 +75,14 @@
     <div class="table-responsive">
         <table class="data-table">
             <thead>
-                <tr><th>Item</th><th>Recent Approved Quantities</th><th>Forecast Next Term</th><th>Current Stock</th><th>Action Insight</th></tr>
+                <tr><th>Item</th><th>Recent Monthly Usage</th><th>Forecast Next Term (Linear Regression)</th><th>Current Stock</th><th>Action Insight</th></tr>
             </thead>
             <tbody>
                 @forelse($forecastItems as $forecast)
                 <tr>
                     <td data-label="Item">{{ $forecast['item_name'] }}</td>
-                    <td data-label="Recent Approved Quantities">{{ $forecast['basis'] }}</td>
-                    <td data-label="Forecast Next Term"><span class="status pending">{{ $forecast['forecast_next_term'] }} {{ $forecast['unit'] }}</span></td>
+                    <td data-label="Recent Monthly Usage">{{ $forecast['basis'] }}</td>
+                    <td data-label="Forecast Next Term (Linear Regression)"><span class="status pending">{{ $forecast['forecast_next_term'] }} {{ $forecast['unit'] }}</span></td>
                     <td data-label="Current Stock">{{ $forecast['current_stock'] }} {{ $forecast['unit'] }}</td>
                     <td data-label="Action Insight">
                         @if($forecast['current_stock'] < $forecast['forecast_next_term'])

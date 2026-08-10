@@ -7,7 +7,6 @@ use App\Models\Department;
 use App\Models\Issuance;
 use App\Models\Item;
 use App\Models\Requisition;
-use App\Models\RequisitionItem;
 use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
@@ -41,35 +40,26 @@ class ReportController extends Controller
             ->groupBy('status')
             ->get();
 
-        $forecastItems = RequisitionItem::with(['item','requisition'])
-            ->whereHas('item', fn ($query) => $query->where('item_type', 'OPEX'))
-            ->whereHas('requisition', fn ($query) => $query->whereIn('status', ['approved', 'partially_approved']))
-            ->get()
-            ->groupBy('item_id')
-            ->map(function ($rows) {
-                $item = $rows->first()?->item;
-                $approvedQuantities = $rows->sortBy(fn ($row) => optional($row->requisition->finalized_at)->timestamp ?? 0)
-                    ->pluck('quantity_approved')
-                    ->filter(fn ($qty) => $qty !== null)
-                    ->map(fn ($qty) => (int) $qty)
-                    ->values();
-
-                if (!$item || $approvedQuantities->isEmpty()) {
-                    return null;
-                }
-
-                $recent = $approvedQuantities->take(-3);
-                $forecast = (int) ceil($recent->avg());
+        // Uses the same Linear Regression forecasting method described in the paper
+        // (App\Support\ForecastCalculator) -- this used to be a separate 3-month
+        // moving-average calculation, which contradicted the paper's methodology
+        // (the paper explicitly chooses Linear Regression over simple averaging) and
+        // could show a different predicted number than the Forecast page for the same
+        // item. Both pages now compute from the exact same source.
+        $forecastItems = collect(\App\Support\ForecastCalculator::allReadyForecasts())
+            ->map(function ($row) {
+                $item = $row['item'];
+                $forecast = $row['forecast'];
+                $recentUsage = collect($forecast['points'])->pluck('y')->take(-3);
 
                 return [
                     'item_name' => $item->name,
                     'unit' => $item->unit,
                     'current_stock' => $item->quantity,
-                    'forecast_next_term' => $forecast,
-                    'basis' => $recent->implode(', '),
+                    'forecast_next_term' => $forecast['predicted'],
+                    'basis' => $recentUsage->implode(', '),
                 ];
             })
-            ->filter()
             ->values();
 
         $assetLocationReport = Item::with('category')

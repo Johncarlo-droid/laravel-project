@@ -12,6 +12,29 @@
   </form>
 </div>
 
+<div class="data-panel mb-3">
+  <h2 class="module-title mb-2">Forecasted Consumption Overview</h2>
+  <div class="module-note mb-2">All OPEX items with enough historical usage data to forecast, sorted by most urgent restock need.</div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead><tr><th>Item</th><th>Predicted Next-Month Demand</th><th>Current Stock</th><th>Suggested Restock</th><th></th></tr></thead>
+      <tbody>
+      @forelse($allForecasts as $row)
+        <tr>
+          <td>{{ $row['item']->item_code }} — {{ $row['item']->name }}</td>
+          <td>{{ $row['forecast']['predicted'] }} {{ $row['item']->unit }}</td>
+          <td>{{ $row['forecast']['currentStock'] }} {{ $row['item']->unit }}</td>
+          <td><span class="status {{ $row['forecast']['suggestedRestock'] > 0 ? 'low' : 'approved' }}">{{ $row['forecast']['suggestedRestock'] }} {{ $row['item']->unit }}</span></td>
+          <td><a href="{{ route('forecast.index', ['item_id' => $row['item']->id]) }}" class="btn-soft small-btn">View Details</a></td>
+        </tr>
+      @empty
+        <tr><td colspan="5" class="empty-state">No OPEX items have enough historical usage data yet (need at least 2 different calendar months logged per item).</td></tr>
+      @endforelse
+      </tbody>
+    </table>
+  </div>
+</div>
+
 @if($selectedItem)
 @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
 @if($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif

@@ -28,7 +28,31 @@
     </div>
 </div>
 
-<div class="surface p-3 mb-3"><div class="module-head mb-2"><div><h2 class="module-title">Planning Snapshot</h2><div class="module-note">Operational summary for CAPEX monitoring and OPEX forecasting.</div></div></div><div class="row g-3"><div class="col-md-4"><div class="report-stat"><div class="tiny-2">Approved / Finalized Requisitions</div><div class="stat-value" style="font-size:28px">{{ $approvedRequisitions }}</div></div></div><div class="col-md-4"><div class="report-stat"><div class="tiny-2">Forecast-Ready OPEX Items</div><div class="stat-value" style="font-size:28px">{{ $forecastReadyItems }}</div></div></div><div class="col-md-4"><div class="report-stat"><div class="tiny-2">Issued Asset Records</div><div class="stat-value" style="font-size:28px">{{ $issuedAssets }}</div></div></div></div></div>
+<div class="surface p-3 mb-3"><div class="module-head mb-2"><div><h2 class="module-title">Planning Snapshot</h2><div class="module-note">Operational summary for CAPEX monitoring and OPEX forecasting.</div></div></div><div class="row g-3"><div class="col-md-4"><div class="report-stat"><div class="tiny-2">Approved / Finalized Requisitions</div><div class="stat-value" style="font-size:28px">{{ $approvedRequisitions }}</div></div></div><div class="col-md-4"><div class="report-stat"><div class="tiny-2">Forecast-Ready OPEX Items</div><div class="stat-value" style="font-size:28px">{{ $forecastReadyItems }}</div></div></div><div class="col-md-4"><div class="report-stat"><div class="tiny-2">Issued Asset Records</div><div class="stat-value" style="font-size:28px">{{ $issuedAssets }}</div></div></div></div>
+
+  <hr class="my-3">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h3 class="tiny-2 mb-0">Linear Regression Forecast — Top Restock Priorities</h3>
+    <a href="{{ route('forecast.index') }}" class="btn-soft small-btn">Open Full Forecasting Tool</a>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead><tr><th>Item</th><th>Predicted Next-Month Demand</th><th>Current Stock</th><th>Suggested Restock</th></tr></thead>
+      <tbody>
+      @forelse($forecastedItems as $row)
+        <tr>
+          <td><a href="{{ route('forecast.index', ['item_id' => $row['item']->id]) }}">{{ $row['item']->item_code }} — {{ $row['item']->name }}</a></td>
+          <td>{{ $row['forecast']['predicted'] }} {{ $row['item']->unit }}</td>
+          <td>{{ $row['forecast']['currentStock'] }} {{ $row['item']->unit }}</td>
+          <td><span class="status {{ $row['forecast']['suggestedRestock'] > 0 ? 'low' : 'approved' }}">{{ $row['forecast']['suggestedRestock'] }} {{ $row['item']->unit }}</span></td>
+        </tr>
+      @empty
+        <tr><td colspan="4" class="empty-state">No OPEX items have enough historical usage data yet to forecast (need at least 2 different calendar months logged).</td></tr>
+      @endforelse
+      </tbody>
+    </table>
+  </div>
+</div>
 
 <div class="panel-grid-2">
     <div class="chart-card">

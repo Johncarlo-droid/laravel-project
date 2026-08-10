@@ -141,19 +141,19 @@ class RequisitionController extends Controller
 
         // Notifications are a side effect, not the actual charge slip -- if mail/notify
         // fails (e.g. SMTP not configured), the requisition itself must still be
-        // considered submitted successfully. Sending this outside the DB transaction
-        // (and its own try/catch) means a broken mail setup can never roll back or
-        // block a real submission.
-        try {
-            foreach (\App\Models\User::where('role', 'admin')->get() as $admin) {
+        // considered submitted successfully. Each recipient is notified inside its own
+        // try/catch: earlier, one failed notify() call aborted the whole loop, so admins
+        // later in the list silently never got notified. That's fixed here.
+        foreach (\App\Models\User::where('role', 'admin')->get() as $admin) {
+            try {
                 $admin->notify(new RequisitionStatusNotification(
                     $requisition->fresh('department', 'user'),
                     'New requisition awaiting Asset Management review',
                     'A new charge slip request was submitted and is now waiting for Asset Management validation.'
                 ));
+            } catch (\Throwable $e) {
+                report($e);
             }
-        } catch (\Throwable $e) {
-            report($e);
         }
 
         return redirect()->route('requisitions.index')->with('success', 'Charge slip requisition submitted successfully.');
@@ -303,15 +303,15 @@ class RequisitionController extends Controller
             ]);
         }
 
-        try {
-            $requisition->refresh()->load('department', 'user');
-            foreach ($pendingNotifications as $entry) {
-                foreach ($entry['users'] as $notifyUser) {
+        $requisition->refresh()->load('department', 'user');
+        foreach ($pendingNotifications as $entry) {
+            foreach ($entry['users'] as $notifyUser) {
+                try {
                     $notifyUser->notify(new RequisitionStatusNotification($requisition, $entry['subject'], $entry['message']));
+                } catch (\Throwable $e) {
+                    report($e);
                 }
             }
-        } catch (\Throwable $e) {
-            report($e);
         }
 
         return redirect()->route('requisitions.show', $requisition)->with('success', 'Requisition updated successfully.');

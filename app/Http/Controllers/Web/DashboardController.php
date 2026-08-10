@@ -54,7 +54,12 @@ class DashboardController extends Controller
         $recentProposals = ActivityProposal::with(['user', 'facility'])->latest()->take(5)->get();
         $issuedAssets = Issuance::where('status', 'issued')->count();
         $approvedRequisitions = Requisition::whereIn('status', ['approved', 'partially_approved'])->count();
-        $forecastReadyItems = RequisitionItem::whereNotNull('quantity_approved')->distinct('item_id')->count('item_id');
+
+        // Forecast widget for the Dashboard -- shows item names + predicted demand,
+        // not just a bare "ready" count like before.
+        $allForecasts = collect(\App\Support\ForecastCalculator::allReadyForecasts());
+        $forecastReadyItems = $allForecasts->count();
+        $forecastedItems = $allForecasts->take(5);
 
         return view('dashboard.index', compact(
             'capexCount',
@@ -69,7 +74,8 @@ class DashboardController extends Controller
             'recentProposals',
             'issuedAssets',
             'approvedRequisitions',
-            'forecastReadyItems'
+            'forecastReadyItems',
+            'forecastedItems'
         ));
     }
 }

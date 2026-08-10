@@ -252,24 +252,24 @@ class ActivityProposalController extends Controller
         $p->refresh();
         if ($p->{$fieldA} && $p->{$fieldB}) {
             $p->update(['status' => $nextStatus]);
-            try {
-                foreach (array_filter($notifyUsers) as $notifyUser) {
+            foreach (array_filter($notifyUsers) as $notifyUser) {
+                try {
                     $notifyUser->notify(new ActivityProposalStatusNotification($p, 'Activity Proposal Awaiting ' . $stageLabel, 'Both required signatures on "' . $p->title . '" are complete. It now needs your signature for the ' . $stageLabel . '.'));
+                } catch (\Throwable $e) {
+                    report($e);
                 }
-            } catch (\Throwable $e) {
-                report($e);
             }
         }
     }
 
     private function notifyBoth(ActivityProposal $p, $userA, $userB, string $subject, string $message): void
     {
-        try {
-            foreach (array_filter([$userA, $userB]) as $notifyUser) {
+        foreach (array_filter([$userA, $userB]) as $notifyUser) {
+            try {
                 $notifyUser->notify(new ActivityProposalStatusNotification($p, $subject, $message));
+            } catch (\Throwable $e) {
+                report($e);
             }
-        } catch (\Throwable $e) {
-            report($e);
         }
     }
 

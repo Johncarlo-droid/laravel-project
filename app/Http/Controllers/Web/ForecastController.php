@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\InventoryUsageLog;
 use App\Models\Item;
+use App\Support\ForecastCalculator;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class ForecastController extends Controller
 {
@@ -18,21 +18,17 @@ class ForecastController extends Controller
         $usageLogs = collect();
 
         if ($selectedItem) {
-            $rows = InventoryUsageLog::where('item_id', $selectedItem->id)
-                ->selectRaw(\App\Support\DateSql::yearMonthSelect('usage_date') . ' as period, SUM(quantity_used) as usage_qty')
-                ->groupByRaw(\App\Support\DateSql::yearMonthGroupBy('usage_date'))
-                ->orderBy('period')
-                ->get();
-
-            $points = [];
-            foreach ($rows as $i => $row) {
-                $points[] = ['x' => $i + 1, 'period' => $row->period, 'y' => (int) $row->usage_qty];
-            }
-            $forecast = $this->linearRegression($points, (int) $selectedItem->quantity, (int) $selectedItem->low_stock_threshold);
+            $points = ForecastCalculator::pointsFor($selectedItem->id);
+            $forecast = ForecastCalculator::compute($points, (int) $selectedItem->quantity, (int) $selectedItem->low_stock_threshold);
             $usageLogs = InventoryUsageLog::where('item_id', $selectedItem->id)->orderByDesc('usage_date')->limit(15)->get();
         }
 
-        return view('forecast.index', compact('items','selectedItem','forecast','usageLogs'));
+        // Quick overview of every OPEX item that already has enough data to
+        // forecast, with the item name and predicted demand -- this is the
+        // "list" view (separate from the single-item detail panel below it).
+        $allForecasts = ForecastCalculator::allReadyForecasts();
+
+        return view('forecast.index', compact('items', 'selectedItem', 'forecast', 'usageLogs', 'allForecasts'));
     }
 
     public function storeUsageLog(Request $request)
@@ -55,41 +51,5 @@ class ForecastController extends Controller
 
         return redirect()->route('forecast.index', ['item_id' => $data['item_id']])
             ->with('success', 'Historical usage record added. Forecast recalculated below.');
-    }
-
-    private function linearRegression(array $points, int $currentStock, int $lowStockThreshold): array
-    {
-        $n = count($points);
-        if ($n < 2) {
-            return ['ready' => false, 'points' => $points, 'message' => 'At least two monthly usage records are needed to compute Linear Regression.'];
-        }
-
-        $sumX = array_sum(array_column($points, 'x'));
-        $sumY = array_sum(array_column($points, 'y'));
-        $sumX2 = array_sum(array_map(fn($p) => $p['x'] * $p['x'], $points));
-        $sumXY = array_sum(array_map(fn($p) => $p['x'] * $p['y'], $points));
-        $denominator = ($n * $sumX2) - ($sumX * $sumX);
-        $b = $denominator == 0 ? 0 : (($n * $sumXY) - ($sumX * $sumY)) / $denominator;
-        $a = ($sumY - ($b * $sumX)) / $n;
-        $nextX = $n + 1;
-        $predicted = max(0, round($a + ($b * $nextX)));
-        $suggestedRestock = max(0, ($predicted + $lowStockThreshold) - $currentStock);
-
-        return [
-            'ready' => true,
-            'points' => $points,
-            'n' => $n,
-            'sumX' => $sumX,
-            'sumY' => $sumY,
-            'sumX2' => $sumX2,
-            'sumXY' => $sumXY,
-            'a' => round($a, 2),
-            'b' => round($b, 2),
-            'nextX' => $nextX,
-            'predicted' => $predicted,
-            'currentStock' => $currentStock,
-            'lowStockThreshold' => $lowStockThreshold,
-            'suggestedRestock' => $suggestedRestock,
-        ];
     }
 }

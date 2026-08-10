@@ -137,4 +137,15 @@ class FacilityController extends Controller
         $reservation->update(['status' => 'rejected', 'reviewed_by' => auth()->id(), 'reviewed_at' => now(), 'rejection_reason' => $data['rejection_reason'] ?? 'Rejected by FMO/Admin']);
         return back()->with('success', 'Reservation rejected.');
     }
+
+    /**
+     * Only Super Admins may delete a facility reservation entirely -- locked to the
+     * highest privilege role since this is user-submitted data.
+     */
+    public function destroyReservation(FacilityReservation $reservation)
+    {
+        abort_unless(auth()->user()->isSuperAdmin(), 403);
+        $reservation->delete();
+        return redirect()->route('facilities.index')->with('success', 'Reservation deleted successfully.');
+    }
 }

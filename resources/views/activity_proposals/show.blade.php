@@ -10,6 +10,13 @@
             <span class="status {{ $proposal->status === 'approved' ? 'approved' : ($proposal->status === 'rejected' ? 'low' : 'pending') }}">{{ $proposal->statusLabel() }}</span>
         </div>
 
+        @if(auth()->user()->isSuperAdmin())
+        <form method="POST" action="{{ route('activity-proposals.destroy', $proposal) }}" class="mb-2" onsubmit="return confirm('Delete this activity proposal permanently? This cannot be undone.');">
+            @csrf @method('DELETE')
+            <button class="btn-soft small-btn text-danger"><i class="bi bi-trash"></i> Delete Proposal (Super Admin)</button>
+        </form>
+        @endif
+
         <table class="kv-table">
             <tr><th><i class="bi bi-building me-1"></i>Organization</th><td>{{ $proposal->organization_name }}</td></tr>
             <tr><th><i class="bi bi-person me-1"></i>Requested By</th><td>{{ $proposal->user->name ?? 'N/A' }} @if($proposal->requester_position)({{ $proposal->requester_position }})@endif</td></tr>

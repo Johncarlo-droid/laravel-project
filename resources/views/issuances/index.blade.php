@@ -26,6 +26,12 @@
                 @else
                     <button type="button" class="btn btn-light btn-sm w-100" style="border-radius:8px;border:1px solid #c9ced6" disabled>Already Returned</button>
                 @endif
+                @if(auth()->user()->isSuperAdmin())
+                <form method="POST" action="{{ route('issuances.destroy', $issuance) }}" onsubmit="return confirm('Delete this issuance record permanently? This cannot be undone.');">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn-soft small-btn w-100 text-danger"><i class="bi bi-trash"></i> Delete (Super Admin)</button>
+                </form>
+                @endif
             </div>
         </div>
     </div>

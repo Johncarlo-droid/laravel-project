@@ -166,6 +166,19 @@ class RequisitionController extends Controller
         return view('requisitions.show', compact('requisition'));
     }
 
+    /**
+     * Only Super Admins may delete a requisition/charge slip entirely -- this is
+     * user-submitted data with an approval trail, so it's locked to the highest
+     * privilege role rather than the general Asset Management Admin role.
+     */
+    public function destroy(Requisition $requisition)
+    {
+        abort_unless(auth()->user()->isSuperAdmin(), 403);
+        $requisition->items()->delete();
+        $requisition->delete();
+        return redirect()->route('requisitions.index')->with('success', 'Requisition deleted successfully.');
+    }
+
     public function approve(Request $request, Requisition $requisition)
     {
         $this->authorizeAccess($requisition);

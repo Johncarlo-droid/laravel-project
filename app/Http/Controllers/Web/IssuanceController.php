@@ -56,4 +56,15 @@ class IssuanceController extends Controller
         $issuance->update(['status' => 'returned']);
         return redirect()->route('issuances.index')->with('success', 'Item marked as returned.');
     }
+
+    /**
+     * Only Super Admins may delete an issuance record entirely -- locked to the
+     * highest privilege role since this is user-submitted data.
+     */
+    public function destroy(Issuance $issuance)
+    {
+        abort_unless(auth()->user()->isSuperAdmin(), 403);
+        $issuance->delete();
+        return redirect()->route('issuances.index')->with('success', 'Issuance record deleted successfully.');
+    }
 }

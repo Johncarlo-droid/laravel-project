@@ -247,6 +247,17 @@ class ActivityProposalController extends Controller
         return back()->with('success', 'Proposal rejected and requester notified.');
     }
 
+    /**
+     * Only Super Admins may delete an activity proposal entirely -- locked to the
+     * highest privilege role since this is user-submitted data with a signature trail.
+     */
+    public function destroy(ActivityProposal $activityProposal)
+    {
+        abort_unless(auth()->user()->isSuperAdmin(), 403);
+        $activityProposal->delete();
+        return redirect()->route('activity-proposals.index')->with('success', 'Activity proposal deleted successfully.');
+    }
+
     private function advanceIfBothSigned(ActivityProposal $p, string $fieldA, string $fieldB, string $nextStatus, array $notifyUsers, string $stageLabel): void
     {
         $p->refresh();

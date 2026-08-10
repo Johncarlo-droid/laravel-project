@@ -52,6 +52,9 @@
             @else
               <span class="tiny">{{ $reservation->reviewer->name ?? 'No action yet' }}</span>
             @endif
+            @if(auth()->user()->isSuperAdmin())
+              <form class="d-inline" method="POST" action="{{ route('facilities.reservations.destroy', $reservation) }}" onsubmit="return confirm('Delete this reservation permanently? This cannot be undone.');">@csrf @method('DELETE')<button class="btn-soft small-btn text-danger"><i class="bi bi-trash"></i> Delete</button></form>
+            @endif
           </td>
         </tr>
       @empty<tr><td colspan="7" class="empty-state">No reservation requests yet.</td></tr>@endforelse

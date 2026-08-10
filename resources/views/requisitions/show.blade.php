@@ -10,6 +10,13 @@
             <span class="status {{ str_contains($requisition->status,'approved') ? 'approved' : ($requisition->status === 'rejected' ? 'low' : 'pending') }}">{{ $requisition->statusLabel() }}</span>
         </div>
 
+        @if(auth()->user()->isSuperAdmin())
+        <form method="POST" action="{{ route('requisitions.destroy', $requisition) }}" class="mb-2" onsubmit="return confirm('Delete this requisition permanently? This cannot be undone.');">
+            @csrf @method('DELETE')
+            <button class="btn-soft small-btn text-danger"><i class="bi bi-trash"></i> Delete Requisition (Super Admin)</button>
+        </form>
+        @endif
+
         <table class="kv-table">
             <tr><th><i class="bi bi-signpost-2 me-1"></i>Branch</th><td>{{ $requisition->branch ?: 'NU Clark' }}</td></tr>
             <tr><th><i class="bi bi-building me-1"></i>Department</th><td>{{ $requisition->department->name ?? 'N/A' }}</td></tr>

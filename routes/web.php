@@ -68,11 +68,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/requisitions/{requisition}/approve', [RequisitionController::class, 'approve'])->name('requisitions.approve');
         Route::post('/requisitions/{requisition}/reject', [RequisitionController::class, 'reject'])->name('requisitions.reject');
     });
+    Route::delete('/requisitions/{requisition}', [RequisitionController::class, 'destroy'])->name('requisitions.destroy');
 
     Route::get('/issuances', [IssuanceController::class, 'index'])->name('issuances.index')->middleware('admin');
     Route::get('/issuances/create', [IssuanceController::class, 'create'])->name('issuances.create')->middleware('admin');
     Route::post('/issuances', [IssuanceController::class, 'store'])->name('issuances.store')->middleware('admin');
     Route::post('/issuances/{issuance}/return', [IssuanceController::class, 'returnItem'])->name('issuances.return')->middleware('admin');
+    Route::delete('/issuances/{issuance}', [IssuanceController::class, 'destroy'])->name('issuances.destroy');
 
     Route::get('/qr-scanner', [QrController::class, 'index'])->name('qr.index')->middleware('admin');
     Route::get('/qr/{item}', [QrController::class, 'show'])->name('qr.show')->middleware('admin');
@@ -88,6 +90,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/facilities/reservations', [FacilityController::class, 'storeReservation'])->name('facilities.reservations.store');
     Route::post('/facilities/reservations/{reservation}/approve', [FacilityController::class, 'approve'])->name('facilities.reservations.approve');
     Route::post('/facilities/reservations/{reservation}/reject', [FacilityController::class, 'reject'])->name('facilities.reservations.reject');
+    Route::delete('/facilities/reservations/{reservation}', [FacilityController::class, 'destroyReservation'])->name('facilities.reservations.destroy');
     Route::resource('facilities', FacilityController::class)->except(['index','show']);
 
     Route::get('/activity-proposals', [ActivityProposalController::class, 'index'])->name('activity-proposals.index');
@@ -101,6 +104,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/activity-proposals/{activityProposal}/sign-academic-director', [ActivityProposalController::class, 'signAcademicDirector'])->name('activity-proposals.sign-academic-director');
     Route::post('/activity-proposals/{activityProposal}/approve-executive', [ActivityProposalController::class, 'approveExecutive'])->name('activity-proposals.approve-executive');
     Route::post('/activity-proposals/{activityProposal}/reject', [ActivityProposalController::class, 'reject'])->name('activity-proposals.reject');
+    Route::delete('/activity-proposals/{activityProposal}', [ActivityProposalController::class, 'destroy'])->name('activity-proposals.destroy');
 
     Route::get('/forecasting', [ForecastController::class, 'index'])->name('forecast.index');
     Route::post('/forecasting/usage-logs', [ForecastController::class, 'storeUsageLog'])->name('forecast.usage-logs.store');

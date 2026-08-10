@@ -61,7 +61,7 @@
         .app-shell{display:flex;min-height:100vh}
 
         /* ---------- Sidebar ---------- */
-        .sidebar{width:116px;background:linear-gradient(165deg,var(--navy-800) 0%,var(--navy-900) 55%,var(--navy-950) 100%);color:#fff;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.05);z-index:20;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow-lg)}
+        .sidebar{width:140px;background:linear-gradient(165deg,var(--navy-800) 0%,var(--navy-900) 55%,var(--navy-950) 100%);color:#fff;position:sticky;top:0;height:100vh;border-right:1px solid rgba(255,255,255,.05);z-index:20;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow-lg)}
         .nav-list{padding:10px 10px 16px;display:grid;gap:4px;overflow-y:auto;flex:1;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.2) transparent}
         .nav-list::-webkit-scrollbar{width:5px}
         .nav-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:999px}
@@ -72,6 +72,7 @@
         .brand-title{font-weight:700;font-size:12.5px;line-height:1.25;font-family:var(--font-display);letter-spacing:.01em}
         .brand-sub{font-size:9.5px;color:#9FACD6;text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-top:1px}
         .nav-linkx{position:relative;display:flex;align-items:center;gap:11px;padding:10px 12px;margin:0 2px;border-radius:11px;text-decoration:none;color:#AEB8D6;font-size:11.5px;font-weight:500;transition:background .15s ease,color .15s ease;letter-spacing:.01em}
+        .nav-linkx span{overflow:hidden;text-overflow:ellipsis}
         .nav-linkx i{font-size:15px;min-width:16px;color:#8592BC;transition:color .15s ease}
         .nav-linkx:hover{background:rgba(255,255,255,.055);color:#fff}
         .nav-linkx:hover i{color:var(--gold-400)}
@@ -276,7 +277,7 @@
 
         .mobile-menu{display:none}
         @media (max-width: 991px){
-            .sidebar{position:fixed;left:-120px;transition:.25s ease;box-shadow:var(--shadow-lg)}
+            .sidebar{position:fixed;left:-144px;transition:.25s ease;box-shadow:var(--shadow-lg)}
             body.sidebar-open .sidebar{left:0}
             .mobile-menu{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border:none;border-radius:12px;background:var(--canvas)}
             .topbar{padding:0 16px}

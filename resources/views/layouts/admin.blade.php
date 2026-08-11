@@ -1,14 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script>
-        (function(){
-            try{
-                var saved = localStorage.getItem('nu-theme');
-                if(saved === 'dark'){ document.documentElement.setAttribute('data-theme','dark'); }
-            }catch(e){}
-        })();
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'NU Clark Asset Management' }}</title>
@@ -21,21 +13,6 @@
         :root {
             --navy-950:#080D22; --navy-900:#0C1330; --navy-800:#141B42; --navy-700:#1D2657;
             --gold-600:#C9932E; --gold-500:#E3B04E; --gold-400:#F0C876; --gold-050:#FBF3E1;
-            --canvas:#F5F6FA; --surface:#FFFFFF; --surface-2:#FAFBFD;
-            --ink-900:#12162B; --ink-700:#333A52; --ink-500:#666E88; --ink-400:#8991A8;
-            --line:#E7E9F2; --line-2:#EFF1F7;
-            --success-bg:#E6F6EE; --success-ink:#0F7A4E; --success-line:#BEE7D2;
-            --danger-bg:#FCEBEC; --danger-ink:#C42A3B; --danger-line:#F5C6CB;
-            --warning-bg:#FCF3E1; --warning-ink:#9C6B0B; --warning-line:#F2DBA8;
-            --info-bg:#E9F1FE; --info-ink:#1E56B0; --info-line:#C6D9F7;
-            --r-sm:10px; --r-md:14px; --r-lg:20px;
-            --shadow-sm:0 1px 2px rgba(18,22,43,.04), 0 1px 1px rgba(18,22,43,.03);
-            --shadow-md:0 8px 24px -8px rgba(18,22,43,.14), 0 2px 8px -2px rgba(18,22,43,.06);
-            --shadow-lg:0 24px 48px -16px rgba(12,19,48,.28), 0 4px 16px -4px rgba(12,19,48,.10);
-            --font-display:'Lexend',Inter,Segoe UI,Arial,sans-serif;
-            --topbar-bg:rgba(255,255,255,.85);
-        }
-        html[data-theme="dark"]{
             --canvas:#0B0E1A; --surface:#131729; --surface-2:#181D34;
             --ink-900:#F2F3FA; --ink-700:#C7CCE2; --ink-500:#9AA1C2; --ink-400:#7981A6;
             --line:#272C4A; --line-2:#20243F;
@@ -43,9 +20,11 @@
             --danger-bg:#331620; --danger-ink:#FF7A88; --danger-line:#552631;
             --warning-bg:#332608; --warning-ink:#F0C876; --warning-line:#54401A;
             --info-bg:#0E1E3B; --info-ink:#7FB1FF; --info-line:#1E3B6B;
+            --r-sm:10px; --r-md:14px; --r-lg:20px;
             --shadow-sm:0 1px 2px rgba(0,0,0,.3), 0 1px 1px rgba(0,0,0,.24);
             --shadow-md:0 8px 24px -8px rgba(0,0,0,.5), 0 2px 8px -2px rgba(0,0,0,.3);
             --shadow-lg:0 24px 48px -16px rgba(0,0,0,.6), 0 4px 16px -4px rgba(0,0,0,.35);
+            --font-display:'Lexend',Inter,Segoe UI,Arial,sans-serif;
             --topbar-bg:rgba(19,23,41,.85);
         }
         *{box-sizing:border-box}
@@ -114,8 +93,8 @@
         /* Hard cap on icon glyph size — clips any icon that tries to render
            larger than its button (font-loading races, browser extensions,
            zoom/translate tools can otherwise blow an icon up to huge size). */
-        .btn-primaryx,.btn-approve,.btn-reject,.btn-soft,.small-btn,.notif-link,.theme-toggle,.mobile-menu,.top-icon{line-height:1}
-        .btn-primaryx i,.btn-approve i,.btn-reject i,.btn-soft i,.small-btn i,.notif-link i,.theme-toggle i,.mobile-menu i,
+        .btn-primaryx,.btn-approve,.btn-reject,.btn-soft,.small-btn,.notif-link,.mobile-menu,.top-icon{line-height:1}
+        .btn-primaryx i,.btn-approve i,.btn-reject i,.btn-soft i,.small-btn i,.notif-link i,.mobile-menu i,
         i[class^="bi-"],i[class*=" bi-"]{font-size:1em!important;line-height:1!important;display:inline-block;vertical-align:-.125em;max-width:1.4em;max-height:1.4em;overflow:hidden}
 
         /* ---------- Search / filter ---------- */
@@ -207,13 +186,6 @@
         .scanner-box{background:linear-gradient(155deg,var(--navy-800),var(--navy-950));border-radius:var(--r-lg);padding:14px;min-height:340px;color:#fff}
         .scanner-result{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:16px;box-shadow:var(--shadow-sm)}
         .report-stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow-sm)}
-
-        /* ---------- Theme toggle ---------- */
-        .theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:var(--surface);color:var(--ink-700);cursor:pointer;transition:background .15s ease,color .15s ease,transform .15s ease}
-        .theme-toggle:hover{background:var(--canvas);transform:translateY(-1px)}
-        .theme-toggle i{font-size:16px;transition:transform .3s ease}
-        html[data-theme="dark"] .theme-toggle i.bi-moon-stars-fill{display:none}
-        html:not([data-theme="dark"]) .theme-toggle i.bi-sun-fill{display:none}
 
         /* ---------- Key/value info table ---------- */
         .kv-table{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px;border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;margin-bottom:18px;box-shadow:var(--shadow-sm)}
@@ -369,10 +341,6 @@
                 </div>
             </div>
             <div class="top-actions">
-                <button type="button" class="theme-toggle" onclick="__toggleTheme()" title="Toggle dark mode">
-                    <i class="bi bi-moon-stars-fill"></i>
-                    <i class="bi bi-sun-fill"></i>
-                </button>
                 <a href="{{ route('notifications.index') }}" class="notif-link" title="Notifications"><i class="bi bi-bell top-icon"></i>@if(auth()->user()->unreadNotifications->count())<span class="notif-badge">{{ auth()->user()->unreadNotifications->count() }}</span>@endif</a>
                 <div class="user-chip">
                     @php($__name = auth()->user()->name ?? 'Admin')
@@ -405,18 +373,6 @@
     </main>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    function __toggleTheme(){
-        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        if(isDark){
-            document.documentElement.removeAttribute('data-theme');
-            try{ localStorage.setItem('nu-theme','light'); }catch(e){}
-        } else {
-            document.documentElement.setAttribute('data-theme','dark');
-            try{ localStorage.setItem('nu-theme','dark'); }catch(e){}
-        }
-    }
-</script>
 @stack('scripts')
 </body>
 </html>

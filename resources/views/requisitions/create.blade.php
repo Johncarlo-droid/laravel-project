@@ -10,10 +10,10 @@
 <div class="form-shell">
     <form method="POST" action="{{ route('requisitions.store') }}" id="chargeSlipForm">
         @csrf
-        <div class="surface p-3 mb-3" style="background:#fff">
+        <div class="surface p-3 mb-3">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
                 <div>
-                    <div style="font-size:22px;font-weight:800;color:#193b7a">NU CLARK</div>
+                    <div style="font-size:22px;font-weight:800;color:var(--ink-900)">NU CLARK</div>
                     <div class="tiny text-uppercase" style="letter-spacing:.08em">Charge Slip Form</div>
                 </div>
                 <div class="tiny" style="min-width:220px">
@@ -99,7 +99,7 @@
             </div>
         </div>
 
-        <div class="surface p-3" style="background:#fff">
+        <div class="surface p-3">
             <div class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label">Requested By</label>

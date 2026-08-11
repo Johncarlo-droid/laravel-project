@@ -16,7 +16,7 @@
 </div>
 <div class="panel-grid-2">
     <div class="surface p-3">
-        <img src="{{ $item->display_image }}" alt="{{ $item->name }}" style="width:100%;max-height:320px;object-fit:cover;border-radius:16px;border:1px solid #cfd5de;margin-bottom:16px;">
+        <img src="{{ $item->display_image }}" alt="{{ $item->name }}" style="width:100%;max-height:320px;object-fit:cover;border-radius:16px;border:1px solid var(--line);margin-bottom:16px;">
         <h3 class="module-title mb-3" style="font-size:16px">Item Profile</h3>
         <div class="row g-3">
             <div class="col-md-6"><div class="report-stat"><div class="tiny-2">{{ $item->item_type === 'CAPEX' ? 'Asset Tag ID' : 'Item Code' }}</div><div class="fw-bold">{{ $item->asset_tag_id }}</div></div></div>
@@ -42,11 +42,11 @@
         <h3 class="module-title mb-3" style="font-size:16px">Details</h3>
         <div class="mb-3">
             <label class="form-label">Specifications</label>
-            <div class="form-control" style="min-height:96px;background:#f8fafc">{{ $item->specifications ?: 'No specifications available.' }}</div>
+            <div class="form-control" style="min-height:96px;background:var(--surface-2)">{{ $item->specifications ?: 'No specifications available.' }}</div>
         </div>
         <div class="mb-3">
             <label class="form-label">Description</label>
-            <div class="form-control" style="min-height:96px;background:#f8fafc">{{ $item->description ?: 'No description available.' }}</div>
+            <div class="form-control" style="min-height:96px;background:var(--surface-2)">{{ $item->description ?: 'No description available.' }}</div>
         </div>
         <div class="settings-list">
             <div class="settings-item"><h5>Status</h5><p class="tiny mb-0">{{ $item->is_active ? 'This item is active in inventory.' : 'This item is inactive in inventory.' }}</p></div>

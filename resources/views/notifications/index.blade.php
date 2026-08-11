@@ -13,7 +13,7 @@
 <div class="surface p-3">
     @forelse($notifications as $notification)
     @php($data = $notification->data)
-    <div class="request-card" style="background:{{ $notification->read_at ? '#d8d8d8' : '#eef4ff' }}">
+    <div class="request-card" style="background:{{ $notification->read_at ? 'var(--surface-2)' : 'var(--info-bg)' }}">
         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
             <div>
                 <div class="d-flex gap-2 align-items-center flex-wrap">

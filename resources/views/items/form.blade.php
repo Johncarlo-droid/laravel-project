@@ -151,7 +151,7 @@
   @if(!empty($item?->display_image))
     <div class="col-md-6">
       <label class="form-label d-block">Current Image</label>
-      <img src="{{ $item->display_image }}" alt="{{ $item->name ?? 'Item image' }}" style="width:140px;height:140px;object-fit:cover;border-radius:14px;border:1px solid #cfd5de;background:#fff">
+      <img src="{{ $item->display_image }}" alt="{{ $item->name ?? 'Item image' }}" style="width:140px;height:140px;object-fit:cover;border-radius:14px;border:1px solid var(--line);background:var(--surface-2)">
       @if(!empty($item?->image_path))
       <div class="form-check mt-2">
         <input class="form-check-input" type="checkbox" value="1" name="remove_image" id="remove_image">

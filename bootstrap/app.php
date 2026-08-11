@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'super_admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
             'approver' => \App\Http\Middleware\ApproverMiddleware::class,
             'auth.jwt' => \App\Http\Middleware\JwtAuthMiddleware::class,
+            'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

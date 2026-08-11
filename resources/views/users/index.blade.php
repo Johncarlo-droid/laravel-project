@@ -56,7 +56,7 @@
                 <tr class="collapse-row">
                     <td colspan="6" class="p-0 border-0">
                         <div class="collapse" id="edit-user-{{ $user->id }}">
-                            <div class="p-3" style="background:#f7f8fb;border-top:1px solid #e2e5ee">
+                            <div class="p-3" style="background:var(--surface-2);border-top:1px solid var(--line)">
                                 <form method="POST" action="{{ route('users.update', $user) }}" class="row g-3">
                                     @csrf
                                     @method('PUT')

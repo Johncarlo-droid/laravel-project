@@ -57,28 +57,84 @@
             <div class="col-2"><input name="code" class="form-control" placeholder="Code"></div>
             <div class="col-2"><button class="btn-primaryx w-100 justify-content-center"><i class="bi bi-plus-lg"></i></button></div>
         </form>
-        <div class="table-responsive">
-            <table class="data-table">
-                <thead><tr><th>Room</th><th>Floor</th><th>Assets</th><th></th></tr></thead>
-                <tbody>
-                @forelse($rooms as $room)
-                    <tr>
-                        <td data-label="Room">{{ $room->name }} @if($room->code)<span class="tiny-2">({{ $room->code }})</span>@endif</td>
-                        <td data-label="Floor">{{ $room->floor->name ?? 'N/A' }}</td>
-                        <td data-label="Assets">{{ $room->items_count }}</td>
-                        <td>
-                            <form method="POST" action="{{ route('reference-data.rooms.destroy', $room) }}" onsubmit="return confirm('Remove {{ $room->name }}?');">
-                                @csrf @method('DELETE')
-                                <button class="btn-soft small-btn"><i class="bi bi-trash"></i></button>
-                            </form>
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="4" class="empty-state">No rooms yet.</td></tr>
-                @endforelse
-                </tbody>
-            </table>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <input type="text" id="roomSearch" class="form-control" placeholder="Search rooms by name, code, or floor…" style="max-width:280px">
+            <div>
+                <button type="button" id="expandAllRooms" class="btn-soft small-btn">Expand All</button>
+                <button type="button" id="collapseAllRooms" class="btn-soft small-btn">Collapse All</button>
+            </div>
         </div>
+
+        <div id="roomsAccordion">
+        @forelse($floors as $floor)
+            @php($floorRooms = $rooms->where('floor_id', $floor->id))
+            <details class="room-floor-group" data-floor-name="{{ strtolower($floor->name) }}">
+                <summary>
+                    <span><i class="bi bi-layers-half"></i> {{ $floor->name }}</span>
+                    <span class="tiny-2">{{ $floorRooms->count() }} room{{ $floorRooms->count() === 1 ? '' : 's' }}</span>
+                </summary>
+                <div class="table-responsive mt-2">
+                    <table class="data-table">
+                        <thead><tr><th>Room</th><th>Assets</th><th></th></tr></thead>
+                        <tbody>
+                        @forelse($floorRooms as $room)
+                            <tr class="room-row" data-search="{{ strtolower($room->name.' '.$room->code.' '.$floor->name) }}">
+                                <td data-label="Room">{{ $room->name }} @if($room->code)<span class="tiny-2">({{ $room->code }})</span>@endif</td>
+                                <td data-label="Assets">{{ $room->items_count }}</td>
+                                <td>
+                                    <form method="POST" action="{{ route('reference-data.rooms.destroy', $room) }}" onsubmit="return confirm('Remove {{ $room->name }}?');">
+                                        @csrf @method('DELETE')
+                                        <button class="btn-soft small-btn"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="3" class="empty-state">No rooms on this floor yet.</td></tr>
+                        @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        @empty
+            <div class="empty-state">Add a floor first, then rooms.</div>
+        @endforelse
+        </div>
+        <div id="noRoomResults" class="empty-state" style="display:none">No rooms match your search.</div>
+
+        <style>
+            .room-floor-group{border:1px solid var(--border-color,rgba(255,255,255,.08));border-radius:10px;padding:10px 14px;margin-bottom:8px;background:var(--surface,transparent)}
+            .room-floor-group summary{cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;list-style:none}
+            .room-floor-group summary::-webkit-details-marker{display:none}
+            .room-floor-group summary::before{content:'\25B8';display:inline-block;margin-right:8px;transition:transform .15s ease}
+            .room-floor-group[open] summary::before{transform:rotate(90deg)}
+        </style>
+        <script>
+        (function(){
+            const search = document.getElementById('roomSearch');
+            const groups = document.querySelectorAll('.room-floor-group');
+            const noResults = document.getElementById('noRoomResults');
+            search?.addEventListener('input', function(){
+                const q = this.value.trim().toLowerCase();
+                let anyVisible = false;
+                groups.forEach(function(group){
+                    let groupHasMatch = false;
+                    group.querySelectorAll('.room-row').forEach(function(row){
+                        const match = q === '' || row.dataset.search.includes(q);
+                        row.style.display = match ? '' : 'none';
+                        if (match) groupHasMatch = true;
+                    });
+                    const floorMatches = group.dataset.floorName.includes(q);
+                    const show = q === '' || groupHasMatch || floorMatches;
+                    group.style.display = show ? '' : 'none';
+                    if (show && q !== '' && (groupHasMatch || floorMatches)) { group.open = true; anyVisible = true; }
+                    if (show) anyVisible = true;
+                });
+                noResults.style.display = (!anyVisible && q !== '') ? '' : 'none';
+            });
+            document.getElementById('expandAllRooms')?.addEventListener('click', () => groups.forEach(g => g.open = true));
+            document.getElementById('collapseAllRooms')?.addEventListener('click', () => groups.forEach(g => g.open = false));
+        })();
+        </script>
     </div>
 </div>
 

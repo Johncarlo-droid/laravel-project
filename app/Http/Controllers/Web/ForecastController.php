@@ -52,4 +52,17 @@ class ForecastController extends Controller
         return redirect()->route('forecast.index', ['item_id' => $data['item_id']])
             ->with('success', 'Historical usage record added. Forecast recalculated below.');
     }
+
+    /**
+     * Only Super Admins may delete a usage log entry -- this is the raw data that
+     * feeds the forecast, so deleting the wrong entry changes what gets predicted.
+     */
+    public function destroyUsageLog(InventoryUsageLog $usageLog)
+    {
+        abort_unless(auth()->user()->isSuperAdmin(), 403);
+        $itemId = $usageLog->item_id;
+        $usageLog->delete();
+        return redirect()->route('forecast.index', ['item_id' => $itemId])
+            ->with('success', 'Usage log entry deleted. Forecast recalculated below.');
+    }
 }

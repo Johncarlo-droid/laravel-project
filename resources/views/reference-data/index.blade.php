@@ -19,12 +19,13 @@
             <div class="col-3"><input name="sort_order" type="number" class="form-control" placeholder="Order" min="0"></div>
             <div class="col-2"><button class="btn-primaryx w-100 justify-content-center"><i class="bi bi-plus-lg"></i></button></div>
         </form>
-        <div class="table-responsive">
+        <input type="text" id="floorSearch" class="form-control mb-2" placeholder="Search floors…">
+        <div class="table-responsive" style="max-height:420px;overflow-y:auto">
             <table class="data-table">
                 <thead><tr><th>Floor</th><th>Rooms</th><th>Assets</th><th></th></tr></thead>
-                <tbody>
+                <tbody id="floorsTableBody">
                 @forelse($floors as $floor)
-                    <tr>
+                    <tr class="filterable-row" data-search="{{ strtolower($floor->name) }}">
                         <td data-label="Floor">{{ $floor->name }}</td>
                         <td data-label="Rooms">{{ $floor->rooms_count }}</td>
                         <td data-label="Assets">{{ $floor->items_count }}</td>
@@ -41,6 +42,14 @@
                 </tbody>
             </table>
         </div>
+        <script>
+        document.getElementById('floorSearch')?.addEventListener('input', function(){
+            const q = this.value.trim().toLowerCase();
+            document.querySelectorAll('#floorsTableBody .filterable-row').forEach(function(row){
+                row.style.display = (q === '' || row.dataset.search.includes(q)) ? '' : 'none';
+            });
+        });
+        </script>
     </div>
 
     <div class="surface p-3">
@@ -147,12 +156,13 @@
             <div class="col-5"><input name="description" class="form-control" placeholder="Description (optional)"></div>
             <div class="col-2"><button class="btn-primaryx w-100 justify-content-center"><i class="bi bi-plus-lg"></i></button></div>
         </form>
-        <div class="table-responsive">
+        <input type="text" id="categorySearch" class="form-control mb-2" placeholder="Search categories…">
+        <div class="table-responsive" style="max-height:420px;overflow-y:auto">
             <table class="data-table">
                 <thead><tr><th>Category</th><th>Items</th><th>Asset Types</th><th></th></tr></thead>
-                <tbody>
+                <tbody id="categoriesTableBody">
                 @forelse($categories as $category)
-                    <tr>
+                    <tr class="filterable-row" data-search="{{ strtolower($category->name) }}">
                         <td data-label="Category">{{ $category->name }}</td>
                         <td data-label="Items">{{ $category->items_count }}</td>
                         <td data-label="Asset Types">{{ $category->asset_types_count }}</td>
@@ -169,6 +179,14 @@
                 </tbody>
             </table>
         </div>
+        <script>
+        document.getElementById('categorySearch')?.addEventListener('input', function(){
+            const q = this.value.trim().toLowerCase();
+            document.querySelectorAll('#categoriesTableBody .filterable-row').forEach(function(row){
+                row.style.display = (q === '' || row.dataset.search.includes(q)) ? '' : 'none';
+            });
+        });
+        </script>
     </div>
 
     <div class="surface p-3">
@@ -184,27 +202,76 @@
             <div class="col-5"><input name="name" class="form-control" placeholder="e.g. Laptop" required></div>
             <div class="col-2"><button class="btn-primaryx w-100 justify-content-center"><i class="bi bi-plus-lg"></i></button></div>
         </form>
-        <div class="table-responsive">
-            <table class="data-table">
-                <thead><tr><th>Asset Type</th><th>Category</th><th></th></tr></thead>
-                <tbody>
-                @forelse($assetTypes as $type)
-                    <tr>
-                        <td data-label="Asset Type">{{ $type->name }}</td>
-                        <td data-label="Category">{{ $type->category->name ?? 'N/A' }}</td>
-                        <td>
-                            <form method="POST" action="{{ route('reference-data.asset-types.destroy', $type) }}" onsubmit="return confirm('Remove {{ $type->name }}?');">
-                                @csrf @method('DELETE')
-                                <button class="btn-soft small-btn"><i class="bi bi-trash"></i></button>
-                            </form>
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="3" class="empty-state">No asset types yet.</td></tr>
-                @endforelse
-                </tbody>
-            </table>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <input type="text" id="assetTypeSearch" class="form-control" placeholder="Search asset types or category…" style="max-width:280px">
+            <div>
+                <button type="button" id="expandAllTypes" class="btn-soft small-btn">Expand All</button>
+                <button type="button" id="collapseAllTypes" class="btn-soft small-btn">Collapse All</button>
+            </div>
         </div>
+
+        <div id="typesAccordion">
+        @forelse($categories as $category)
+            @php($categoryTypes = $assetTypes->where('item_category_id', $category->id))
+            <details class="room-floor-group" data-floor-name="{{ strtolower($category->name) }}">
+                <summary>
+                    <span><i class="bi bi-tag"></i> {{ $category->name }}</span>
+                    <span class="tiny-2">{{ $categoryTypes->count() }} type{{ $categoryTypes->count() === 1 ? '' : 's' }}</span>
+                </summary>
+                <div class="table-responsive mt-2">
+                    <table class="data-table">
+                        <thead><tr><th>Asset Type</th><th></th></tr></thead>
+                        <tbody>
+                        @forelse($categoryTypes as $type)
+                            <tr class="room-row" data-search="{{ strtolower($type->name.' '.$category->name) }}">
+                                <td data-label="Asset Type">{{ $type->name }}</td>
+                                <td>
+                                    <form method="POST" action="{{ route('reference-data.asset-types.destroy', $type) }}" onsubmit="return confirm('Remove {{ $type->name }}?');">
+                                        @csrf @method('DELETE')
+                                        <button class="btn-soft small-btn"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="2" class="empty-state">No asset types in this category yet.</td></tr>
+                        @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        @empty
+            <div class="empty-state">Add a category first, then asset types.</div>
+        @endforelse
+        </div>
+        <div id="noTypeResults" class="empty-state" style="display:none">No asset types match your search.</div>
+
+        <script>
+        (function(){
+            const search = document.getElementById('assetTypeSearch');
+            const groups = document.querySelectorAll('#typesAccordion .room-floor-group');
+            const noResults = document.getElementById('noTypeResults');
+            search?.addEventListener('input', function(){
+                const q = this.value.trim().toLowerCase();
+                let anyVisible = false;
+                groups.forEach(function(group){
+                    let groupHasMatch = false;
+                    group.querySelectorAll('.room-row').forEach(function(row){
+                        const match = q === '' || row.dataset.search.includes(q);
+                        row.style.display = match ? '' : 'none';
+                        if (match) groupHasMatch = true;
+                    });
+                    const nameMatches = group.dataset.floorName.includes(q);
+                    const show = q === '' || groupHasMatch || nameMatches;
+                    group.style.display = show ? '' : 'none';
+                    if (show && q !== '' && (groupHasMatch || nameMatches)) { group.open = true; }
+                    if (show) anyVisible = true;
+                });
+                noResults.style.display = (!anyVisible && q !== '') ? '' : 'none';
+            });
+            document.getElementById('expandAllTypes')?.addEventListener('click', () => groups.forEach(g => g.open = true));
+            document.getElementById('collapseAllTypes')?.addEventListener('click', () => groups.forEach(g => g.open = false));
+        })();
+        </script>
     </div>
 </div>
 

@@ -14,7 +14,7 @@
 
 <div class="data-panel mb-3">
   <h2 class="module-title mb-2">Forecasted Consumption Overview</h2>
-  <div class="module-note mb-2">All OPEX items with enough historical usage data to forecast, sorted by most urgent restock need.</div>
+  <div class="module-note mb-2">All OPEX items with enough historical usage data to forecast, sorted by most urgent restock need. @if(auth()->user()->isSuperAdmin())Super Admin: click "View Details" to manage/delete an item's underlying usage log entries below.@endif</div>
   <div class="table-responsive">
     <table class="data-table">
       <thead><tr><th>Item</th><th>Predicted Next-Month Demand</th><th>Current Stock</th><th>Suggested Restock</th><th></th></tr></thead>
@@ -106,6 +106,36 @@
       <p class="mb-1"><strong>Current stock:</strong> {{ $forecast['currentStock'] }} {{ $selectedItem->unit }}</p>
       <p class="mb-1"><strong>Suggested restock:</strong> <span class="status {{ $forecast['suggestedRestock'] > 0 ? 'low' : 'approved' }}">{{ $forecast['suggestedRestock'] }} {{ $selectedItem->unit }}</span></p>
     @endif
+  </div>
+</div>
+
+<div class="data-panel mt-3">
+  <h2 class="module-title mb-2">Recent Usage Log Entries</h2>
+  <div class="module-note mb-2">Individual records behind the monthly totals above. @if(auth()->user()->isSuperAdmin())As Super Admin, you can delete a wrong/duplicate entry here — the forecast recalculates automatically.@else Only Super Admin accounts can delete entries here.@endif</div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead><tr><th>Date</th><th>Quantity Used</th><th>Source</th><th>Remarks</th>@if(auth()->user()->isSuperAdmin())<th></th>@endif</tr></thead>
+      <tbody>
+      @forelse($usageLogs as $log)
+        <tr>
+          <td>{{ \Carbon\Carbon::parse($log->usage_date)->format('M d, Y') }}</td>
+          <td>{{ $log->quantity_used }} {{ $selectedItem->unit }}</td>
+          <td><span class="tiny-2">{{ $log->source === 'manual_backfill' ? 'Manual entry' : 'Auto-logged from requisition' }}</span></td>
+          <td>{{ $log->remarks }}</td>
+          @if(auth()->user()->isSuperAdmin())
+          <td>
+            <form method="POST" action="{{ route('forecast.usage-logs.destroy', $log) }}" onsubmit="return confirm('Delete this usage log entry? This will recalculate the forecast.');">
+              @csrf @method('DELETE')
+              <button class="btn-soft small-btn text-danger"><i class="bi bi-trash"></i> Delete</button>
+            </form>
+          </td>
+          @endif
+        </tr>
+      @empty
+        <tr><td colspan="5" class="empty-state">No usage log entries yet for this item.</td></tr>
+      @endforelse
+      </tbody>
+    </table>
   </div>
 </div>
 @endif

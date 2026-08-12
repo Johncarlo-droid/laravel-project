@@ -108,6 +108,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/forecasting', [ForecastController::class, 'index'])->name('forecast.index');
     Route::post('/forecasting/usage-logs', [ForecastController::class, 'storeUsageLog'])->name('forecast.usage-logs.store');
+    Route::delete('/forecasting/usage-logs/{usageLog}', [ForecastController::class, 'destroyUsageLog'])->name('forecast.usage-logs.destroy');
     Route::get('/asset-scans', [AssetScanController::class, 'index'])->name('asset-scans.index');
     Route::get('/asset-scans/print', [AssetScanController::class, 'print'])->name('asset-scans.print');
     Route::post('/asset-scans/{assetScanLog}/resolve', [AssetScanController::class, 'resolve'])->name('asset-scans.resolve');

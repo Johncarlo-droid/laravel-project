@@ -19,7 +19,10 @@ class IssuanceController extends Controller
     public function create()
     {
         return view('issuances.create', [
-            'requisitions' => Requisition::where('status', 'approved')->orderByDesc('id')->get(),
+            'requisitions' => Requisition::where('status', 'approved')
+                ->with(['items.item', 'user'])
+                ->orderByDesc('id')
+                ->get(),
             'users' => User::orderBy('name')->get(),
         ]);
     }

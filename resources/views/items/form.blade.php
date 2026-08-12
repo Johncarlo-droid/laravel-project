@@ -25,22 +25,14 @@
 
   <div class="col-md-6">
     @if($isCapex)
-      <label class="form-label">Category &amp; Asset Type</label>
-      <select id="asset_selector" class="form-select" required>
-        <option value="">Select category, then asset type</option>
-        @foreach($categories as $category)
-          @php($typesForCategory = $categoryTypeMap[$category->id] ?? [])
-          <optgroup label="{{ $category->name }}">
-            @foreach($typesForCategory as $typeName)
-              <option
-                value="{{ $typeName }}"
-                data-category-id="{{ $category->id }}"
-                @selected(old('category_id', $item->category_id ?? '') == $category->id && old('asset_type_name', $item->asset_type_name ?? '') === $typeName)
-              >{{ $typeName }}</option>
-            @endforeach
-          </optgroup>
-        @endforeach
-      </select>
+      <label class="form-label">Category</label>
+      <div id="category_chips" class="picker-chip-row"></div>
+      <div id="asset_type_wrap" style="display:none" class="mt-2">
+        <label class="form-label">Asset Type</label>
+        <select id="asset_type_select" class="form-select" required>
+          <option value="">Select asset type</option>
+        </select>
+      </div>
       <input type="hidden" name="category_id" id="category_select" value="{{ old('category_id', $item->category_id ?? '') }}">
       <input type="hidden" name="asset_type_name" id="asset_type_choice" value="{{ old('asset_type_name', $item->asset_type_name ?? '') }}">
       <div class="tiny mt-1">Don't see the right one? Ask your Super Admin to add it under Reference Data.</div>
@@ -77,15 +69,11 @@
         <input type="hidden" name="floor_id" id="floor_select" value="{{ $existingItem->floor_id }}">
         <div class="tiny mt-1">Floor is locked after creation to keep the asset tag consistent.</div>
       @else
-        <select name="floor_id" id="floor_select" class="form-select" required>
-          <option value="">Select floor</option>
-          @foreach(($floors ?? []) as $floorOption)
-            <option value="{{ $floorOption->id }}" @selected(old('floor_id') == $floorOption->id)>{{ $floorOption->name }}</option>
-          @endforeach
-        </select>
+        <div id="floor_chips" class="picker-chip-row"></div>
+        <input type="hidden" name="floor_id" id="floor_select" value="{{ old('floor_id') }}">
       @endif
     </div>
-    <div class="col-md-4">
+    <div class="col-md-4" id="room_wrap" style="{{ $existingItem?->exists ? '' : 'display:none' }}">
       <label class="form-label">Assigned Room</label>
       <select name="room_id" id="room_select" class="form-select" required>
         <option value="">Select floor first</option>
@@ -110,39 +98,72 @@
     @endunless
     <script>
     (function () {
+      const categoryTypeMap = @json($categoryTypeMap);
       const roomsByFloor = @json($roomsByFloor);
-      const assetSelector = document.getElementById('asset_selector');
+      const categoryList = @json($categories->map(fn($c) => ['id' => $c->id, 'name' => $c->name])->values());
+      const floorList = @json(collect($floors ?? [])->map(fn($f) => ['id' => $f->id, 'name' => $f->name])->values());
+
       const categoryHidden = document.getElementById('category_select');
       const typeHidden = document.getElementById('asset_type_choice');
-      const floorSelect = document.getElementById('floor_select');
+      const categoryChips = document.getElementById('category_chips');
+      const assetTypeWrap = document.getElementById('asset_type_wrap');
+      const assetTypeSelect = document.getElementById('asset_type_select');
+
+      const floorHidden = document.getElementById('floor_select');
+      const floorChips = document.getElementById('floor_chips');
+      const roomWrap = document.getElementById('room_wrap');
       const roomSelect = document.getElementById('room_select');
+
+      const presetCategoryId = @json(old('category_id', $item->category_id ?? ''));
+      const presetAssetType = @json(old('asset_type_name', $item->asset_type_name ?? ''));
+      const presetFloorId = @json(old('floor_id', $existingItem?->floor_id ?? ''));
       const presetRoomId = @json(old('room_id', $item->room_id ?? ''));
 
-      // Single "Category & Asset Type" dropdown -- picking one option (e.g. under the
-      // "Electronics" group, "Laptop") sets both hidden fields (category_id +
-      // asset_type_name) in one step, instead of two separate dropdowns.
-      if (assetSelector) {
-        function syncFromSelector() {
-          const selected = assetSelector.selectedOptions[0];
-          if (selected && selected.value) {
-            categoryHidden.value = selected.dataset.categoryId || '';
-            typeHidden.value = selected.value;
-          } else {
-            categoryHidden.value = '';
-            typeHidden.value = '';
-          }
-        }
-        assetSelector.addEventListener('change', syncFromSelector);
-        // Only auto-sync on load if an option actually matched the existing item's
-        // saved category/asset type. If nothing matched (e.g. the asset type was
-        // renamed/removed from Reference Data after this item was created), leave the
-        // hidden fields exactly as they were pre-filled -- don't wipe real saved data
-        // just because the dropdown itself can't visually show a matching selection.
-        if (assetSelector.value) {
-          syncFromSelector();
-        }
+      // --- Category chips -> reveals Asset Type dropdown ---
+      function buildChipRow(container, list, activeId, onPick) {
+        if (!container) return;
+        container.innerHTML = '';
+        list.forEach(function (entry) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'picker-chip' + (String(activeId) === String(entry.id) ? ' active' : '');
+          btn.textContent = entry.name;
+          btn.dataset.id = entry.id;
+          btn.addEventListener('click', function () {
+            container.querySelectorAll('.picker-chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            onPick(entry.id);
+          });
+          container.appendChild(btn);
+        });
       }
 
+      function populateAssetTypes(catId, preselect) {
+        const options = categoryTypeMap[catId] || [];
+        assetTypeSelect.innerHTML = '<option value="">Select asset type</option>';
+        options.forEach(function (opt) {
+          const o = document.createElement('option');
+          o.value = opt; o.textContent = opt;
+          if (preselect === opt) o.selected = true;
+          assetTypeSelect.appendChild(o);
+        });
+        typeHidden.value = preselect && options.includes(preselect) ? preselect : '';
+      }
+
+      if (categoryChips) {
+        buildChipRow(categoryChips, categoryList, presetCategoryId, function (catId) {
+          categoryHidden.value = catId;
+          assetTypeWrap.style.display = '';
+          populateAssetTypes(catId, '');
+        });
+        if (presetCategoryId) {
+          assetTypeWrap.style.display = '';
+          populateAssetTypes(presetCategoryId, presetAssetType);
+        }
+        assetTypeSelect.addEventListener('change', function () { typeHidden.value = assetTypeSelect.value; });
+      }
+
+      // --- Floor chips -> reveals Room dropdown ---
       function populateRooms(floorId, preselect) {
         const options = roomsByFloor[floorId] || [];
         roomSelect.innerHTML = options.length ? '<option value="">Select room</option>' : '<option value="">No rooms set up for this floor yet</option>';
@@ -154,14 +175,29 @@
         });
       }
 
-      if (floorSelect) {
-        if (floorSelect.value) populateRooms(floorSelect.value, presetRoomId);
-        if (floorSelect.tagName === 'SELECT') {
-          floorSelect.addEventListener('change', function () { populateRooms(floorSelect.value, ''); });
+      if (floorChips) {
+        buildChipRow(floorChips, floorList, presetFloorId, function (floorId) {
+          floorHidden.value = floorId;
+          roomWrap.style.display = '';
+          populateRooms(floorId, '');
+        });
+        if (presetFloorId) {
+          roomWrap.style.display = '';
+          populateRooms(presetFloorId, presetRoomId);
         }
+      } else if (floorHidden && floorHidden.value) {
+        // Locked/edit mode: floor is fixed, just populate rooms for it.
+        populateRooms(floorHidden.value, presetRoomId);
       }
     })();
     </script>
+
+    <style>
+      .picker-chip-row{display:flex;flex-wrap:wrap;gap:8px}
+      .picker-chip{border:1px solid var(--line,#c7cbd4);background:var(--surface,transparent);color:inherit;padding:8px 14px;border-radius:999px;font-size:13px;cursor:pointer;transition:all .15s ease}
+      .picker-chip:hover{border-color:var(--primary,#1e1b4b)}
+      .picker-chip.active{background:var(--primary,#1e1b4b);border-color:var(--primary,#1e1b4b);color:#fff;font-weight:600}
+    </style>
   @else
     <div class="col-md-3"><label class="form-label">Quantity</label><input type="number" name="quantity" class="form-control" value="{{ old('quantity', $item->quantity ?? 0) }}" required></div>
     <div class="col-md-3"><label class="form-label">Unit</label><input name="unit" class="form-control" value="{{ old('unit', $item->unit ?? '') }}" required></div>

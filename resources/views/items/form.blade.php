@@ -24,14 +24,36 @@
   </div>
 
   <div class="col-md-6">
-    <label class="form-label">Category</label>
-    <select name="category_id" id="category_select" class="form-select" required>
-      <option value="">Select category</option>
-      @foreach($categories as $category)
-        <option value="{{ $category->id }}" @selected(old('category_id', $item->category_id ?? '') == $category->id)>{{ $category->name }}</option>
-      @endforeach
-    </select>
-    <div class="tiny mt-1">Don't see the right one? Ask your Super Admin to add it under Reference Data.</div>
+    @if($isCapex)
+      <label class="form-label">Category &amp; Asset Type</label>
+      <select id="asset_selector" class="form-select" required>
+        <option value="">Select category, then asset type</option>
+        @foreach($categories as $category)
+          @php($typesForCategory = $categoryTypeMap[$category->id] ?? [])
+          <optgroup label="{{ $category->name }}">
+            @foreach($typesForCategory as $typeName)
+              <option
+                value="{{ $typeName }}"
+                data-category-id="{{ $category->id }}"
+                @selected(old('category_id', $item->category_id ?? '') == $category->id && old('asset_type_name', $item->asset_type_name ?? '') === $typeName)
+              >{{ $typeName }}</option>
+            @endforeach
+          </optgroup>
+        @endforeach
+      </select>
+      <input type="hidden" name="category_id" id="category_select" value="{{ old('category_id', $item->category_id ?? '') }}">
+      <input type="hidden" name="asset_type_name" id="asset_type_choice" value="{{ old('asset_type_name', $item->asset_type_name ?? '') }}">
+      <div class="tiny mt-1">Don't see the right one? Ask your Super Admin to add it under Reference Data.</div>
+    @else
+      <label class="form-label">Category</label>
+      <select name="category_id" id="category_select" class="form-select" required>
+        <option value="">Select category</option>
+        @foreach($categories as $category)
+          <option value="{{ $category->id }}" @selected(old('category_id', $item->category_id ?? '') == $category->id)>{{ $category->name }}</option>
+        @endforeach
+      </select>
+      <div class="tiny mt-1">Don't see the right one? Ask your Super Admin to add it under Reference Data.</div>
+    @endif
   </div>
   <div class="col-md-6">
     <label class="form-label">Assigned Department</label>
@@ -70,12 +92,6 @@
       </select>
       <div class="tiny mt-1">Missing room? Ask your Super Admin to add it under Reference Data.</div>
     </div>
-    <div class="col-md-4">
-      <label class="form-label">Asset Type</label>
-      <select name="asset_type_name" id="asset_type_choice" class="form-select">
-        <option value="">Select category first</option>
-      </select>
-    </div>
     <div class="col-md-8">
       <label class="form-label">Brand</label>
       <input name="brand" class="form-control" value="{{ old('brand', $item->brand ?? '') }}">
@@ -94,24 +110,37 @@
     @endunless
     <script>
     (function () {
-      const categoryTypeMap = @json($categoryTypeMap);
       const roomsByFloor = @json($roomsByFloor);
-      const categorySelect = document.getElementById('category_select');
-      const typeChoice = document.getElementById('asset_type_choice');
+      const assetSelector = document.getElementById('asset_selector');
+      const categoryHidden = document.getElementById('category_select');
+      const typeHidden = document.getElementById('asset_type_choice');
       const floorSelect = document.getElementById('floor_select');
       const roomSelect = document.getElementById('room_select');
-      const presetAssetType = @json(old('asset_type_name', $item->asset_type_name ?? ''));
       const presetRoomId = @json(old('room_id', $item->room_id ?? ''));
 
-      function populateTypes(catId, preselect) {
-        const options = categoryTypeMap[catId] || [];
-        typeChoice.innerHTML = '<option value="">Select asset type</option>';
-        options.forEach(function (opt) {
-          const o = document.createElement('option');
-          o.value = opt; o.textContent = opt;
-          if (preselect === opt) o.selected = true;
-          typeChoice.appendChild(o);
-        });
+      // Single "Category & Asset Type" dropdown -- picking one option (e.g. under the
+      // "Electronics" group, "Laptop") sets both hidden fields (category_id +
+      // asset_type_name) in one step, instead of two separate dropdowns.
+      if (assetSelector) {
+        function syncFromSelector() {
+          const selected = assetSelector.selectedOptions[0];
+          if (selected && selected.value) {
+            categoryHidden.value = selected.dataset.categoryId || '';
+            typeHidden.value = selected.value;
+          } else {
+            categoryHidden.value = '';
+            typeHidden.value = '';
+          }
+        }
+        assetSelector.addEventListener('change', syncFromSelector);
+        // Only auto-sync on load if an option actually matched the existing item's
+        // saved category/asset type. If nothing matched (e.g. the asset type was
+        // renamed/removed from Reference Data after this item was created), leave the
+        // hidden fields exactly as they were pre-filled -- don't wipe real saved data
+        // just because the dropdown itself can't visually show a matching selection.
+        if (assetSelector.value) {
+          syncFromSelector();
+        }
       }
 
       function populateRooms(floorId, preselect) {
@@ -125,10 +154,6 @@
         });
       }
 
-      if (categorySelect) {
-        populateTypes(categorySelect.value, presetAssetType);
-        categorySelect.addEventListener('change', function () { populateTypes(categorySelect.value, ''); });
-      }
       if (floorSelect) {
         if (floorSelect.value) populateRooms(floorSelect.value, presetRoomId);
         if (floorSelect.tagName === 'SELECT') {

@@ -69,6 +69,7 @@ class ReferenceDataController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:100', 'unique:item_categories,name'],
             'description' => ['nullable', 'string', 'max:255'],
+            'item_type' => ['required', 'in:CAPEX,OPEX,BOTH'],
         ]);
         ItemCategory::create($data);
         return back()->with('success', 'Category added.');

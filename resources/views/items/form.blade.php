@@ -38,12 +38,14 @@
       <div class="tiny mt-1">Don't see the right one? Ask your Super Admin to add it under Reference Data.</div>
     @else
       <label class="form-label">Category</label>
-      <select name="category_id" id="category_select" class="form-select" required>
-        <option value="">Select category</option>
-        @foreach($categories as $category)
-          <option value="{{ $category->id }}" @selected(old('category_id', $item->category_id ?? '') == $category->id)>{{ $category->name }}</option>
-        @endforeach
-      </select>
+      <div class="tree-select" id="category_tree_opex">
+        <button type="button" class="tree-select-trigger form-select">
+          <span class="tree-select-label">Select category</span>
+          <span class="chevron">&#9662;</span>
+        </button>
+        <div class="tree-select-panel"></div>
+      </div>
+      <input type="hidden" name="category_id" id="category_select" value="{{ old('category_id', $item->category_id ?? '') }}">
       <div class="tiny mt-1">Don't see the right one? Ask your Super Admin to add it under Reference Data.</div>
     @endif
   </div>
@@ -105,166 +107,6 @@
       <div class="tiny mt-1">Creates that many separate assets in this same room, each with its own auto-generated asset tag ID. No need to add them one by one.</div>
     </div>
     @endunless
-    <script>
-    (function () {
-      const categoryTypeMap = @json($categoryTypeMap);
-      const roomsByFloor = @json($roomsByFloor);
-      const categoryList = @json($categories->map(fn($c) => ['id' => $c->id, 'name' => $c->name])->values());
-      const floorList = @json(collect($floors ?? [])->map(fn($f) => ['id' => $f->id, 'name' => $f->name])->values());
-
-      const presetCategoryId = @json(old('category_id', $item->category_id ?? ''));
-      const presetAssetType = @json(old('asset_type_name', $item->asset_type_name ?? ''));
-      const presetFloorId = @json(old('floor_id', $existingItem?->floor_id ?? ''));
-      const presetRoomId = @json(old('room_id', $item->room_id ?? ''));
-
-      /**
-       * A single dropdown "panel" that behaves like a tree: top-level groups
-       * (Category, or Floor) are listed; clicking one expands its children
-       * (Asset Types, or Rooms) inline right underneath it, while other groups
-       * stay collapsed. Clicking a child selects it and closes the panel.
-       * Reused for both Category > Asset Type and Floor > Room.
-       */
-      function initTreeSelect(rootEl, groups, opts) {
-        const trigger = rootEl.querySelector('.tree-select-trigger');
-        const labelEl = trigger.querySelector('.tree-select-label');
-        const panel = rootEl.querySelector('.tree-select-panel');
-
-        function render() {
-          panel.innerHTML = '';
-          if (!groups.length) {
-            panel.innerHTML = '<div class="tree-select-empty">' + (opts.emptyText || 'Nothing set up yet.') + '</div>';
-            return;
-          }
-          groups.forEach(function (group) {
-            const groupEl = document.createElement('div');
-            groupEl.className = 'tree-select-group';
-            const groupLabel = document.createElement('div');
-            groupLabel.className = 'tree-select-group-label';
-            groupLabel.innerHTML = '<span>' + group.name + '</span><span class="caret">&#9656;</span>';
-            groupLabel.addEventListener('click', function (e) {
-              e.stopPropagation();
-              const wasExpanded = groupEl.classList.contains('expanded');
-              panel.querySelectorAll('.tree-select-group').forEach(g => g.classList.remove('expanded'));
-              if (!wasExpanded) groupEl.classList.add('expanded');
-            });
-            groupEl.appendChild(groupLabel);
-
-            const childrenEl = document.createElement('div');
-            childrenEl.className = 'tree-select-children';
-            const children = opts.childrenFor(group.id);
-            if (!children.length) {
-              childrenEl.innerHTML = '<div class="tree-select-empty">' + (opts.emptyChildText || 'None yet.') + '</div>';
-            }
-            children.forEach(function (child) {
-              const leafEl = document.createElement('div');
-              leafEl.className = 'tree-select-leaf';
-              leafEl.textContent = child.name;
-              if (opts.selectedChildId !== undefined && String(opts.selectedChildId) === String(child.id) && String(opts.selectedGroupId) === String(group.id)) {
-                leafEl.classList.add('selected');
-                groupEl.classList.add('expanded');
-                labelEl.textContent = group.name + ' \u203A ' + child.name;
-              }
-              leafEl.addEventListener('click', function (e) {
-                e.stopPropagation();
-                panel.querySelectorAll('.tree-select-leaf').forEach(l => l.classList.remove('selected'));
-                leafEl.classList.add('selected');
-                labelEl.textContent = group.name + ' \u203A ' + child.name;
-                rootEl.classList.remove('open');
-                opts.onSelect(group.id, child.id, group.name, child.name);
-              });
-              childrenEl.appendChild(leafEl);
-            });
-            groupEl.appendChild(childrenEl);
-            panel.appendChild(groupEl);
-          });
-        }
-
-        trigger.addEventListener('click', function (e) {
-          e.stopPropagation();
-          document.querySelectorAll('.tree-select.open').forEach(el => { if (el !== rootEl) el.classList.remove('open'); });
-          rootEl.classList.toggle('open');
-        });
-        panel.addEventListener('click', function (e) { e.stopPropagation(); });
-        render();
-      }
-
-      document.addEventListener('click', function () {
-        document.querySelectorAll('.tree-select.open').forEach(el => el.classList.remove('open'));
-      });
-
-      // --- Category > Asset Type ---
-      const categoryTree = document.getElementById('category_tree');
-      if (categoryTree) {
-        const categoryHidden = document.getElementById('category_select');
-        const typeHidden = document.getElementById('asset_type_choice');
-        initTreeSelect(categoryTree, categoryList, {
-          childrenFor: (catId) => (categoryTypeMap[catId] || []).map(name => ({ id: name, name })),
-          selectedGroupId: presetCategoryId,
-          selectedChildId: presetAssetType,
-          emptyText: 'No categories set up yet.',
-          emptyChildText: 'No asset types in this category yet.',
-          onSelect: (catId, typeName) => {
-            categoryHidden.value = catId;
-            typeHidden.value = typeName;
-          },
-        });
-      }
-
-      // --- Floor > Room (create mode only; edit mode uses the fixed floor + plain room select below) ---
-      const floorTree = document.getElementById('floor_tree');
-      if (floorTree) {
-        const floorHidden = document.getElementById('floor_select');
-        const roomHidden = document.getElementById('room_select');
-        initTreeSelect(floorTree, floorList, {
-          childrenFor: (floorId) => roomsByFloor[floorId] || [],
-          selectedGroupId: presetFloorId,
-          selectedChildId: presetRoomId,
-          emptyText: 'No floors set up yet.',
-          emptyChildText: 'No rooms on this floor yet.',
-          onSelect: (floorId, roomId) => {
-            floorHidden.value = floorId;
-            roomHidden.value = roomId;
-          },
-        });
-      }
-
-      // --- Edit mode: floor is fixed, just populate the plain Room dropdown ---
-      const roomSelectEdit = document.getElementById('room_select_edit');
-      if (roomSelectEdit) {
-        const fixedFloorId = document.getElementById('floor_select').value;
-        const options = roomsByFloor[fixedFloorId] || [];
-        roomSelectEdit.innerHTML = options.length ? '<option value="">Select room</option>' : '<option value="">No rooms set up for this floor yet</option>';
-        options.forEach(function (room) {
-          const o = document.createElement('option');
-          o.value = room.id; o.textContent = room.name;
-          if (String(presetRoomId) === String(room.id)) o.selected = true;
-          roomSelectEdit.appendChild(o);
-        });
-      }
-    })();
-    </script>
-
-    <style>
-      .tree-select{position:relative}
-      .tree-select-trigger{width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-      .tree-select-trigger .chevron{opacity:.6;transition:transform .15s ease;margin-left:8px}
-      .tree-select.open .tree-select-trigger{box-shadow:0 0 0 3px rgba(227,176,78,.18);border-color:var(--gold-500)}
-      .tree-select.open .tree-select-trigger .chevron{transform:rotate(180deg)}
-      .tree-select-panel{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--shadow-lg);z-index:50;max-height:320px;overflow-y:auto;padding:6px}
-      .tree-select.open .tree-select-panel{display:block}
-      .tree-select-group{border-radius:var(--r-sm);margin-bottom:2px}
-      .tree-select-group-label{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-900);border-radius:var(--r-sm)}
-      .tree-select-group-label:hover{background:var(--surface)}
-      .tree-select-group.expanded > .tree-select-group-label{background:var(--navy-800);color:#fff}
-      .tree-select-group-label .caret{font-size:10px;opacity:.6;transition:transform .15s ease}
-      .tree-select-group.expanded > .tree-select-group-label .caret{transform:rotate(90deg)}
-      .tree-select-children{display:none;padding-left:16px;border-left:1px solid var(--line-2);margin:2px 0 4px 10px}
-      .tree-select-group.expanded > .tree-select-children{display:block}
-      .tree-select-leaf{padding:8px 10px;font-size:12.5px;cursor:pointer;border-radius:var(--r-sm);color:var(--ink-700)}
-      .tree-select-leaf:hover{background:var(--surface);color:var(--ink-900)}
-      .tree-select-leaf.selected{background:var(--gold-500);color:#141b1b;font-weight:700}
-      .tree-select-empty{padding:9px 10px;font-size:12px;color:var(--ink-500)}
-    </style>
   @else
     <div class="col-md-3"><label class="form-label">Quantity</label><input type="number" name="quantity" class="form-control" value="{{ old('quantity', $item->quantity ?? 0) }}" required></div>
     <div class="col-md-3"><label class="form-label">Unit</label><input name="unit" class="form-control" value="{{ old('unit', $item->unit ?? '') }}" required></div>
@@ -273,6 +115,203 @@
     <div class="col-md-4"><label class="form-label">Availability</label><select name="availability_status" class="form-select"><option value="Available" @selected(old('availability_status', $item->availability_status ?? 'Available')==='Available')>Available</option><option value="Limited Stock" @selected(old('availability_status', $item->availability_status ?? '')==='Limited Stock')>Limited Stock</option><option value="Out of Stock" @selected(old('availability_status', $item->availability_status ?? '')==='Out of Stock')>Out of Stock</option></select></div>
     <div class="col-md-4"><label class="form-label">Low Stock Threshold</label><input type="number" name="low_stock_threshold" class="form-control" value="{{ old('low_stock_threshold', $item->low_stock_threshold ?? 0) }}" required></div>
   @endif
+
+  <script>
+  (function () {
+    const categoryTypeMap = @json($categoryTypeMap);
+    const roomsByFloor = @json($roomsByFloor);
+    const categoryList = @json($categories->map(fn($c) => ['id' => $c->id, 'name' => $c->name])->values());
+    const floorList = @json(collect($floors ?? [])->map(fn($f) => ['id' => $f->id, 'name' => $f->name])->values());
+
+    const presetCategoryId = @json(old('category_id', $item->category_id ?? ''));
+    const presetAssetType = @json(old('asset_type_name', $item->asset_type_name ?? ''));
+    const presetFloorId = @json(old('floor_id', $existingItem?->floor_id ?? ''));
+    const presetRoomId = @json(old('room_id', $item->room_id ?? ''));
+
+    /**
+     * A single dropdown "panel" that behaves like a tree: top-level groups
+     * (Category, or Floor) are listed; clicking one expands its children
+     * (Asset Types, or Rooms) inline right underneath it, while other groups
+     * stay collapsed. Clicking a child selects it and closes the panel.
+     * With opts.flat, it's just a plain single-level clickable list (used for
+     * OPEX Category, which has no Asset Type sub-level).
+     * Reused for both CAPEX's Category > Asset Type, Floor > Room, and OPEX's
+     * flat Category picker -- one shared component, one consistent look.
+     */
+    function initTreeSelect(rootEl, groups, opts) {
+      const trigger = rootEl.querySelector('.tree-select-trigger');
+      const labelEl = trigger.querySelector('.tree-select-label');
+      const panel = rootEl.querySelector('.tree-select-panel');
+
+      function render() {
+        panel.innerHTML = '';
+        if (!groups.length) {
+          panel.innerHTML = '<div class="tree-select-empty">' + (opts.emptyText || 'Nothing set up yet.') + '</div>';
+          return;
+        }
+        if (opts.flat) {
+          groups.forEach(function (group) {
+            const leafEl = document.createElement('div');
+            leafEl.className = 'tree-select-leaf';
+            leafEl.textContent = group.name;
+            if (opts.selectedGroupId !== undefined && String(opts.selectedGroupId) === String(group.id)) {
+              leafEl.classList.add('selected');
+              labelEl.textContent = group.name;
+            }
+            leafEl.addEventListener('click', function (e) {
+              e.stopPropagation();
+              panel.querySelectorAll('.tree-select-leaf').forEach(l => l.classList.remove('selected'));
+              leafEl.classList.add('selected');
+              labelEl.textContent = group.name;
+              rootEl.classList.remove('open');
+              opts.onSelect(group.id, null, group.name, null);
+            });
+            panel.appendChild(leafEl);
+          });
+          return;
+        }
+        groups.forEach(function (group) {
+          const groupEl = document.createElement('div');
+          groupEl.className = 'tree-select-group';
+          const groupLabel = document.createElement('div');
+          groupLabel.className = 'tree-select-group-label';
+          groupLabel.innerHTML = '<span>' + group.name + '</span><span class="caret">&#9656;</span>';
+          groupLabel.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const wasExpanded = groupEl.classList.contains('expanded');
+            panel.querySelectorAll('.tree-select-group').forEach(g => g.classList.remove('expanded'));
+            if (!wasExpanded) groupEl.classList.add('expanded');
+          });
+          groupEl.appendChild(groupLabel);
+
+          const childrenEl = document.createElement('div');
+          childrenEl.className = 'tree-select-children';
+          const children = opts.childrenFor(group.id);
+          if (!children.length) {
+            childrenEl.innerHTML = '<div class="tree-select-empty">' + (opts.emptyChildText || 'None yet.') + '</div>';
+          }
+          children.forEach(function (child) {
+            const leafEl = document.createElement('div');
+            leafEl.className = 'tree-select-leaf';
+            leafEl.textContent = child.name;
+            if (opts.selectedChildId !== undefined && String(opts.selectedChildId) === String(child.id) && String(opts.selectedGroupId) === String(group.id)) {
+              leafEl.classList.add('selected');
+              groupEl.classList.add('expanded');
+              labelEl.textContent = group.name + ' \u203A ' + child.name;
+            }
+            leafEl.addEventListener('click', function (e) {
+              e.stopPropagation();
+              panel.querySelectorAll('.tree-select-leaf').forEach(l => l.classList.remove('selected'));
+              leafEl.classList.add('selected');
+              labelEl.textContent = group.name + ' \u203A ' + child.name;
+              rootEl.classList.remove('open');
+              opts.onSelect(group.id, child.id, group.name, child.name);
+            });
+            childrenEl.appendChild(leafEl);
+          });
+          groupEl.appendChild(childrenEl);
+          panel.appendChild(groupEl);
+        });
+      }
+
+      trigger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        document.querySelectorAll('.tree-select.open').forEach(el => { if (el !== rootEl) el.classList.remove('open'); });
+        rootEl.classList.toggle('open');
+      });
+      panel.addEventListener('click', function (e) { e.stopPropagation(); });
+      render();
+    }
+
+    document.addEventListener('click', function () {
+      document.querySelectorAll('.tree-select.open').forEach(el => el.classList.remove('open'));
+    });
+
+    // --- CAPEX: Category > Asset Type ---
+    const categoryTree = document.getElementById('category_tree');
+    if (categoryTree) {
+      const categoryHidden = document.getElementById('category_select');
+      const typeHidden = document.getElementById('asset_type_choice');
+      initTreeSelect(categoryTree, categoryList, {
+        childrenFor: (catId) => (categoryTypeMap[catId] || []).map(name => ({ id: name, name })),
+        selectedGroupId: presetCategoryId,
+        selectedChildId: presetAssetType,
+        emptyText: 'No categories set up yet.',
+        emptyChildText: 'No asset types in this category yet.',
+        onSelect: (catId, typeName) => {
+          categoryHidden.value = catId;
+          typeHidden.value = typeName;
+        },
+      });
+    }
+
+    // --- OPEX: flat Category picker (no Asset Type sub-level) ---
+    const categoryTreeOpex = document.getElementById('category_tree_opex');
+    if (categoryTreeOpex) {
+      const categoryHidden = document.getElementById('category_select');
+      initTreeSelect(categoryTreeOpex, categoryList, {
+        flat: true,
+        selectedGroupId: presetCategoryId,
+        emptyText: 'No categories set up yet.',
+        onSelect: (catId) => { categoryHidden.value = catId; },
+      });
+    }
+
+    // --- CAPEX: Floor > Room (create mode only; edit mode uses the fixed floor + plain room select below) ---
+    const floorTree = document.getElementById('floor_tree');
+    if (floorTree) {
+      const floorHidden = document.getElementById('floor_select');
+      const roomHidden = document.getElementById('room_select');
+      initTreeSelect(floorTree, floorList, {
+        childrenFor: (floorId) => roomsByFloor[floorId] || [],
+        selectedGroupId: presetFloorId,
+        selectedChildId: presetRoomId,
+        emptyText: 'No floors set up yet.',
+        emptyChildText: 'No rooms on this floor yet.',
+        onSelect: (floorId, roomId) => {
+          floorHidden.value = floorId;
+          roomHidden.value = roomId;
+        },
+      });
+    }
+
+    // --- CAPEX edit mode: floor is fixed, just populate the plain Room dropdown ---
+    const roomSelectEdit = document.getElementById('room_select_edit');
+    if (roomSelectEdit) {
+      const fixedFloorId = document.getElementById('floor_select').value;
+      const options = roomsByFloor[fixedFloorId] || [];
+      roomSelectEdit.innerHTML = options.length ? '<option value="">Select room</option>' : '<option value="">No rooms set up for this floor yet</option>';
+      options.forEach(function (room) {
+        const o = document.createElement('option');
+        o.value = room.id; o.textContent = room.name;
+        if (String(presetRoomId) === String(room.id)) o.selected = true;
+        roomSelectEdit.appendChild(o);
+      });
+    }
+  })();
+  </script>
+
+  <style>
+    .tree-select{position:relative}
+    .tree-select-trigger{width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+    .tree-select-trigger .chevron{opacity:.6;transition:transform .15s ease;margin-left:8px}
+    .tree-select.open .tree-select-trigger{box-shadow:0 0 0 3px rgba(227,176,78,.18);border-color:var(--gold-500)}
+    .tree-select.open .tree-select-trigger .chevron{transform:rotate(180deg)}
+    .tree-select-panel{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--shadow-lg);z-index:50;max-height:320px;overflow-y:auto;padding:6px}
+    .tree-select.open .tree-select-panel{display:block}
+    .tree-select-group{border-radius:var(--r-sm);margin-bottom:2px}
+    .tree-select-group-label{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-900);border-radius:var(--r-sm)}
+    .tree-select-group-label:hover{background:var(--surface)}
+    .tree-select-group.expanded > .tree-select-group-label{background:var(--navy-800);color:#fff}
+    .tree-select-group-label .caret{font-size:10px;opacity:.6;transition:transform .15s ease}
+    .tree-select-group.expanded > .tree-select-group-label .caret{transform:rotate(90deg)}
+    .tree-select-children{display:none;padding-left:16px;border-left:1px solid var(--line-2);margin:2px 0 4px 10px}
+    .tree-select-group.expanded > .tree-select-children{display:block}
+    .tree-select-leaf{padding:8px 10px;font-size:12.5px;cursor:pointer;border-radius:var(--r-sm);color:var(--ink-700)}
+    .tree-select-leaf:hover{background:var(--surface);color:var(--ink-900)}
+    .tree-select-leaf.selected{background:var(--gold-500);color:#141b1b;font-weight:700}
+    .tree-select-empty{padding:9px 10px;font-size:12px;color:var(--ink-500)}
+  </style>
 
   <div class="col-md-6"><label class="form-label">Item Image</label><input type="file" name="image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp,image/*"><div class="tiny mt-1">Upload a JPG, PNG, or WEBP file up to 4MB.</div></div>
   <div class="col-md-6"><label class="form-label">Specifications</label><textarea name="specifications" class="form-control" rows="3">{{ old('specifications', $item->specifications ?? '') }}</textarea></div>

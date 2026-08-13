@@ -152,18 +152,26 @@
         <h3 class="module-title mb-2" style="font-size:16px"><i class="bi bi-tags"></i> Categories</h3>
         <form method="POST" action="{{ route('reference-data.categories.store') }}" class="row g-2 mb-3">
             @csrf
-            <div class="col-5"><input name="name" class="form-control" placeholder="e.g. Electronics" required></div>
-            <div class="col-5"><input name="description" class="form-control" placeholder="Description (optional)"></div>
+            <div class="col-4"><input name="name" class="form-control" placeholder="e.g. Electronics" required></div>
+            <div class="col-3"><input name="description" class="form-control" placeholder="Description (optional)"></div>
+            <div class="col-3">
+                <select name="item_type" class="form-select" required>
+                    <option value="BOTH">Both CAPEX &amp; OPEX</option>
+                    <option value="CAPEX">CAPEX only</option>
+                    <option value="OPEX">OPEX only</option>
+                </select>
+            </div>
             <div class="col-2"><button class="btn-primaryx w-100 justify-content-center"><i class="bi bi-plus-lg"></i></button></div>
         </form>
         <input type="text" id="categorySearch" class="form-control mb-2" placeholder="Search categories…">
         <div class="table-responsive" style="max-height:420px;overflow-y:auto">
             <table class="data-table">
-                <thead><tr><th>Category</th><th>Items</th><th>Asset Types</th><th></th></tr></thead>
+                <thead><tr><th>Category</th><th>Scope</th><th>Items</th><th>Asset Types</th><th></th></tr></thead>
                 <tbody id="categoriesTableBody">
                 @forelse($categories as $category)
-                    <tr class="filterable-row" data-search="{{ strtolower($category->name) }}">
+                    <tr class="filterable-row" data-search="{{ strtolower($category->name.' '.$category->item_type) }}">
                         <td data-label="Category">{{ $category->name }}</td>
+                        <td data-label="Scope"><span class="tag">{{ $category->item_type === 'BOTH' ? 'CAPEX & OPEX' : $category->item_type }}</span></td>
                         <td data-label="Items">{{ $category->items_count }}</td>
                         <td data-label="Asset Types">{{ $category->asset_types_count }}</td>
                         <td>
@@ -174,7 +182,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="4" class="empty-state">No categories yet.</td></tr>
+                    <tr><td colspan="5" class="empty-state">No categories yet.</td></tr>
                 @endforelse
                 </tbody>
             </table>

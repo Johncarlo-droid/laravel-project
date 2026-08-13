@@ -7,7 +7,7 @@ class ItemCategory extends Model
 {
     use HasFactory;
     protected $table = 'item_categories';
-    protected $fillable = ['name', 'description'];
+    protected $fillable = ['name', 'description', 'item_type'];
 
     public function items()
     {

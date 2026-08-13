@@ -93,11 +93,13 @@ class ItemController extends Controller
     public function create(Request $request)
     {
         abort_unless(auth()->user()->canManageInventory(), 403);
-        $categories = ItemCategory::orderBy('name')->get();
         $type = strtoupper((string) $request->get('type', 'CAPEX'));
         if (!in_array($type, ['CAPEX', 'OPEX'], true)) {
             $type = 'CAPEX';
         }
+        $categories = ItemCategory::where(function ($q) use ($type) {
+            $q->where('item_type', $type)->orWhere('item_type', 'BOTH');
+        })->orderBy('name')->get();
         $suggestedCode = $type === 'OPEX' ? $this->generateItemCode($type) : null;
         $floors = Floor::orderBy('sort_order')->orderBy('name')->get();
         $departments = Department::orderBy('name')->get();
@@ -192,8 +194,10 @@ class ItemController extends Controller
     public function edit(Item $item)
     {
         abort_unless(auth()->user()->canManageInventory(), 403);
-        $categories = ItemCategory::orderBy('name')->get();
         $type = $item->item_type;
+        $categories = ItemCategory::where(function ($q) use ($type, $item) {
+            $q->where('item_type', $type)->orWhere('item_type', 'BOTH')->orWhere('id', $item->category_id);
+        })->orderBy('name')->get();
         $floors = Floor::orderBy('sort_order')->orderBy('name')->get();
         $departments = Department::orderBy('name')->get();
         $assetTypeOptions = $this->assetTypeOptionsArray();

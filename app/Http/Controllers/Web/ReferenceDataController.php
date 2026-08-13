@@ -75,6 +75,17 @@ class ReferenceDataController extends Controller
         return back()->with('success', 'Category added.');
     }
 
+    public function updateCategory(Request $request, ItemCategory $category)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:100', 'unique:item_categories,name,'.$category->id],
+            'description' => ['nullable', 'string', 'max:255'],
+            'item_type' => ['required', 'in:CAPEX,OPEX,BOTH'],
+        ]);
+        $category->update($data);
+        return back()->with('success', 'Category "'.$category->name.'" updated.');
+    }
+
     public function destroyCategory(ItemCategory $category)
     {
         if ($category->items()->exists()) {

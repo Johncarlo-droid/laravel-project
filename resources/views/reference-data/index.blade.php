@@ -166,21 +166,32 @@
         <input type="text" id="categorySearch" class="form-control mb-2" placeholder="Search categories…">
         <div class="table-responsive" style="max-height:420px;overflow-y:auto">
             <table class="data-table">
-                <thead><tr><th>Category</th><th>Scope</th><th>Items</th><th>Asset Types</th><th></th></tr></thead>
+                <thead><tr><th>Category</th><th>Scope</th><th>Items</th><th>Asset Types</th><th style="min-width:210px"></th></tr></thead>
                 <tbody id="categoriesTableBody">
                 @forelse($categories as $category)
+                    @php($formId = 'cat-form-'.$category->id)
                     <tr class="filterable-row" data-search="{{ strtolower($category->name.' '.$category->item_type) }}">
-                        <td data-label="Category">{{ $category->name }}</td>
-                        <td data-label="Scope"><span class="tag">{{ $category->item_type === 'BOTH' ? 'CAPEX & OPEX' : $category->item_type }}</span></td>
+                        <td data-label="Category"><input type="text" name="name" form="{{ $formId }}" value="{{ $category->name }}" class="form-control form-control-sm" required></td>
+                        <td data-label="Scope">
+                            <select name="item_type" form="{{ $formId }}" class="form-select form-select-sm">
+                                <option value="BOTH" @selected($category->item_type === 'BOTH')>CAPEX &amp; OPEX</option>
+                                <option value="CAPEX" @selected($category->item_type === 'CAPEX')>CAPEX only</option>
+                                <option value="OPEX" @selected($category->item_type === 'OPEX')>OPEX only</option>
+                            </select>
+                        </td>
                         <td data-label="Items">{{ $category->items_count }}</td>
                         <td data-label="Asset Types">{{ $category->asset_types_count }}</td>
                         <td>
-                            <form method="POST" action="{{ route('reference-data.categories.destroy', $category) }}" onsubmit="return confirm('Remove {{ $category->name }}?');">
+                            <button type="submit" form="{{ $formId }}" class="btn-soft small-btn"><i class="bi bi-check-lg"></i> Save</button>
+                            <form method="POST" action="{{ route('reference-data.categories.destroy', $category) }}" class="d-inline" onsubmit="return confirm('Remove {{ $category->name }}?');">
                                 @csrf @method('DELETE')
                                 <button class="btn-soft small-btn"><i class="bi bi-trash"></i></button>
                             </form>
                         </td>
                     </tr>
+                    <form id="{{ $formId }}" method="POST" action="{{ route('reference-data.categories.update', $category) }}" style="display:none">
+                        @csrf @method('PUT')
+                    </form>
                 @empty
                     <tr><td colspan="5" class="empty-state">No categories yet.</td></tr>
                 @endforelse

@@ -55,6 +55,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/rooms', [ReferenceDataController::class, 'storeRoom'])->name('rooms.store');
         Route::delete('/rooms/{room}', [ReferenceDataController::class, 'destroyRoom'])->name('rooms.destroy');
         Route::post('/categories', [ReferenceDataController::class, 'storeCategory'])->name('categories.store');
+        Route::put('/categories/{category}', [ReferenceDataController::class, 'updateCategory'])->name('categories.update');
         Route::delete('/categories/{category}', [ReferenceDataController::class, 'destroyCategory'])->name('categories.destroy');
         Route::post('/asset-types', [ReferenceDataController::class, 'storeAssetType'])->name('asset-types.store');
         Route::delete('/asset-types/{assetType}', [ReferenceDataController::class, 'destroyAssetType'])->name('asset-types.destroy');
